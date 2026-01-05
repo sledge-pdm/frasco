@@ -1,0 +1,19 @@
+{
+  "name": "@sledge-pdm/frasco",
+  "version": "0.0.1",
+  "description": "WebGL Texture processing package for sledge",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run --browser",
+    "test:ui": "vitest --browser"
+  },
+  "devDependencies": {
+    "@vitest/browser": "^3.0.0",
+    "playwright": "^1.49.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.13.1"
+}
