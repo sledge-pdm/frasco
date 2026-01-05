@@ -2,3 +2,5 @@
 ./anvil/
 
 node_modules
+__screenshots__/
+.codex/

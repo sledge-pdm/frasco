@@ -14,6 +14,7 @@ export type LayerInit = Size & {
 };
 
 export type LayerExportOptions = {
+  /** @deprecated already flipped by shader */
   flipY?: boolean;
 };
 
@@ -23,4 +24,3 @@ export type LayerEffect = {
   fragmentSrc: string;
   uniforms?: Record<string, LayerEffectUniformValue>;
 };
-
