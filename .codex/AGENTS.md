@@ -1,5 +1,8 @@
 # instructions
 
+- Read `README.md`, `strategy.md` and other documents before initializing environments.
+- Follow the rules in `Notices` of `strategy.md`. If you notice something to be documentated, tell user that fact.
+
 ## FORBIDDEN SYNTAX (PowerShell)
 
 - **NO Linux Redirection:** DO NOT use `< < EOF` or `<< 'PY'`. These are Linux-specific and cause syntax errors in PowerShell.

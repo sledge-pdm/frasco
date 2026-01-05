@@ -14,7 +14,7 @@ export type LayerInit = Size & {
 };
 
 export type LayerExportOptions = {
-  /** @deprecated already flipped by shader */
+  /** Flip to canvas/top-left coordinate system when needed. */
   flipY?: boolean;
 };
 

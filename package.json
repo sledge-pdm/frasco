@@ -5,12 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run --browser",
-    "test:ui": "vitest --browser"
+    "test:ui": "vitest --browser",
+    "prettier": "prettier --write . --config .prettierrc",
+    "format": "pnpm prettier"
   },
   "devDependencies": {
-    "@vitest/browser": "^3.0.0",
+    "@vitest/browser-playwright": "^4.0.16",
     "playwright": "^1.49.0",
-    "vitest": "^3.0.0"
+    "vitest": "^4.0.16",
+    "prettier": "^3.7.4",
+    "prettier-plugin-organize-imports": "^4.3.0"
   },
   "keywords": [],
   "author": "",
