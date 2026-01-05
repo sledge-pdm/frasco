@@ -12,5 +12,8 @@ export default defineConfig({
       instances: [{ browser: 'chromium' }],
       screenshotFailures: false,
     },
+    diff: {
+      truncateThreshold: 10,
+    },
   },
 });

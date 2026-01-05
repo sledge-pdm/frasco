@@ -7,8 +7,8 @@
 - [x] create package template
 - [x] determine/write minimum `layer` interfaces (_according to Anvil implementation_)
 - [x] consider the ways to test glsl renderers
-- [ ] write unit tests
-- [ ] write e2e tests (if possible)
+- [x] write unit tests
+- [x] write e2e tests (if possible)
 
 ### P2
 
@@ -61,5 +61,8 @@
 
 ### Coordinate system
 
-- `layer` keeps GL coordinate system (origin at bottom-left) for internal operations.
+- `layer` keeps GL coordinate system (origin at bottom-left) for internal operations on purpose.
+
+  > **Note that this means layer always has Y flipped texture compared with original input buffer!**
+
 - `frasco` is responsible for flipping to canvas coordinate system before output/rendering.

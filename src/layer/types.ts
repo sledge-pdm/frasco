@@ -14,7 +14,7 @@ export type LayerInit = Size & {
 };
 
 export type LayerExportOptions = {
-  /** Flip to canvas/top-left coordinate system when needed. */
+  /** @deprecated Layer has flipped texture and readPixels flip it again. So this option just make output buffer flipped compared with original. */
   flipY?: boolean;
 };
 
