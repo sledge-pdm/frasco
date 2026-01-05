@@ -1,6 +1,6 @@
 # Frasco
 
-<img src="./public/banner@x4.webp" style="image-rendering: pixelated;" alt="the banner of FRASCO."  />
+<img src="./public/banner@x4.webp" style="image-rendering: pixelated;" alt="the banner of frasco."  />
 
 Frasco is the WebGL Texture processing package for [sledge](https://github.com/sledge-pdm/sledge).
 
