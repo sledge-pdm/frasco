@@ -2,7 +2,11 @@
   "name": "@sledge-pdm/frasco",
   "version": "0.0.1",
   "description": "WebGL Texture processing package for sledge",
+  "author": "innsbluck",
+  "license": "MIT",
+  "private": false,
   "type": "module",
+  "sideEffects": true,
   "exports": {
     ".": "./index.ts"
   },
@@ -26,8 +30,8 @@
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0"
   },
-  "keywords": [],
-  "author": "innsbluck",
-  "license": "MIT",
-  "packageManager": "pnpm@10.13.1"
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com/"
+  }
 }
