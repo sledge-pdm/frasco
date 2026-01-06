@@ -102,7 +102,8 @@ vec4 blendVividLight(vec4 src, vec4 dst) {
 }
 
 void main() {
-  vec4 src = texture(u_src, v_uv) * u_opacity;
+  vec4 src = texture(u_src, v_uv);
+  src.a *= u_opacity;
   vec4 dst = texture(u_dst, v_uv);
   if (u_blendMode == 1) {
     outColor = blendMultiply(src, dst);

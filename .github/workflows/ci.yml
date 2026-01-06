@@ -1,0 +1,141 @@
+name: ci
+
+on:
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect changes to determine which jobs to run
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.changes.outputs.rust }}
+      ts: ${{ steps.changes.outputs.ts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            rust:
+              - 'src/wasm/**'
+              - '**/Cargo.toml'
+              - '**/Cargo.lock'
+            ts:
+              - '**/*.ts'
+              - '**/*.tsx'
+              - '**/*.js'
+              - '**/*.jsx'
+              - '**/*.json'
+              - '**/*.css'
+              - '**/package.json'
+              - '**/pnpm-lock.yaml'
+              - '**/tsconfig.json'
+              - '**/vite.config.*'
+              - '**/vitest.config.*'
+
+  # TypeScript/Node.js quality checks
+  ts-quality:
+    name: TypeScript Quality & Tests
+    needs: changes
+    if: ${{ needs.changes.outputs.ts == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup pnpm (install first for node cache detection)
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.1
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          # Note: Removing cache since anvil is a submodule without pnpm-lock.yaml
+
+      - name: Configure pnpm Auth for private registry
+        run: pnpm config set //npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install JS dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit --skipLibCheck
+
+      - name: Prettier check
+        run: pnpm exec prettier --check .
+
+      - name: Run Vitest
+        run: pnpm test
+
+      - name: Upload Vitest results (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-logs
+          path: |
+            ./**/coverage
+            ./**/vitest-temp
+          if-no-files-found: ignore
+          retention-days: 5
+
+  # Rust quality checks (only when Rust files change)
+  rust-quality:
+    name: Rust Quality Checks
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install Rust (stable + components)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src/wasm
+
+      - name: Rust format check
+        working-directory: src/wasm
+        run: cargo fmt --all -- --check
+
+      - name: Rust clippy
+        working-directory: src/wasm
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Rust check
+        working-directory: src/wasm
+        run: cargo check --all-targets

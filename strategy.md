@@ -26,10 +26,10 @@
 
 ### P4
 
-- [ ] determine/write minimum `frasco` interfaces (_according to sledge implementation_)
-- [ ] write `frasco` interfaces
-- [ ] write unit tests
-- [ ] write e2e tests
+- [x] determine/write minimum `frasco` interfaces (_according to sledge implementation_)
+- [x] write `frasco` interfaces
+- [x] write unit tests
+- [ ] write e2e tests (! too lazy)
 
 ### P5
 
