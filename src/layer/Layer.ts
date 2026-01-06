@@ -150,7 +150,7 @@ export class Layer {
     const out = new Uint8Array(this.size.width * this.size.height * 4);
     gl.readPixels(0, 0, this.size.width, this.size.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
 
-    if (options?.flipY) {
+    if (options?.flipYFromOriginal) {
       flipPixelsYInPlace(out, this.size.width, this.size.height);
     }
     return out;

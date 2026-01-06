@@ -24,9 +24,10 @@ export class Grip {
   }
 
   start(layer: Layer, shape: GripShape, point: GripPoint): void {
-    if (this.isInStroke()) {
-      console.warn(`Grip.start: already in stroke. replacing.`);
-    }
+    // Currently replace session even if already defined
+    // if (this.isInStroke()) {
+    //   console.warn(`Grip.start: already in stroke. replacing.`);
+    // }
 
     const next = this.toLayerPoint(layer, point);
     shape.start(layer, next);

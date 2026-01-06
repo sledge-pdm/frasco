@@ -14,8 +14,7 @@ export type LayerInit = Size & {
 };
 
 export type LayerExportOptions = {
-  /** @deprecated Layer has flipped texture and readPixels flip it again. So this option just make output buffer flipped compared with original. */
-  flipY?: boolean;
+  flipYFromOriginal?: boolean;
 };
 
 export type LayerEffectUniformValue = number | readonly number[];
