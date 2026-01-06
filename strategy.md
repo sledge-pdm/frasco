@@ -15,12 +15,12 @@
 - [x] write `grip` interfaces
 - [x] write minimum brush shape (solid circle, linear completion, & no pressure censoring)
 - [x] write unit tests
-- [x] write e2e tests
+- [ ] write e2e tests (! should write in every grip shapes but delayed bc of laziness. verify sets are much easier to make when came to integration with sledge...)
 
 ### P3
 
-- [ ] write effects
-- [ ] write history system
+- [x] write effects
+- [x] write history system
 - [ ] write unit tests
 - [ ] write e2e tests
 
@@ -41,10 +41,13 @@
 ### Coding
 
 - Always refer the code in `sledge` and `anvil` to make integration easier, but this does not mean _always write the same function_. Editing/rendering code will be going more compact with frasco (hopefully.)
+- Effects should prefer integer-domain behavior (OpenCV-like rounding) over pure floating-point semantics.
 
 ### Testing
 
 - Unit test ~ GLSL test is going to be done with vitest.
+- Use `it.fails` in the actual anti-case (e.g.: make sure pixel won't painted after painting wrong pixel).
+- Don't use `it.fails` just to "make sure the bug is now happening". Test always should be positive to perfection.
 
 ### primitive and flexible
 
@@ -57,7 +60,9 @@
 
   #### what is flexible?
   - For example, when you're breaking down the stroke process into `start`, `add_point`, `end`, **avoid hard coding the completion process (like `shape stamp` + `bresenham's line`) there**.
-  - In the example above, the way of completion always should be determined by each shapes. It may complement the pressure changes between points in linear completion, or may not.
+  - In the example above, the way of completion always should be determined by each shapes. e.g.:
+    - The shape may use bresenham, or may not (other faster ways).
+    - The shape may complement the pressure changes between points in linear completion, or may not.
 
 ### Coordinate system
 

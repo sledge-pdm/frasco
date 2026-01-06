@@ -1,6 +1,8 @@
+import { LayerHistory } from '../history/LayerHistory';
+import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from '../history/types';
 import { MaskSurfaceImpl } from '../surface/MaskSurface';
 import type { MaskSurface, SurfaceBounds } from '../surface/types';
-import { FULLSCREEN_VERT_300ES } from './shaders';
+import { COPY_FRAG_300ES, FULLSCREEN_VERT_300ES } from './shaders';
 import type { LayerEffect, LayerExportOptions, LayerInit, RawPixelData, Rgba8, Size } from './types';
 
 type TexturePair = {
@@ -8,7 +10,7 @@ type TexturePair = {
   back: WebGLTexture;
 };
 
-export class Layer {
+export class Layer implements HistoryTarget {
   private readonly gl: WebGL2RenderingContext;
   private size: Size;
   private textures: TexturePair;
@@ -16,6 +18,7 @@ export class Layer {
   private readonly vao: WebGLVertexArrayObject;
   private readonly vbo: WebGLBuffer;
   private readonly programs: Map<string, WebGLProgram> = new Map();
+  private history?: LayerHistory<unknown>;
   private disposed = false;
 
   constructor(gl: WebGL2RenderingContext, init: LayerInit) {
@@ -80,10 +83,75 @@ export class Layer {
     this.gl.deleteTexture(texture);
   }
 
+  setHistoryBackend<TSnapshot>(backend: HistoryBackend<TSnapshot>, maxItems = 100): void {
+    this.history?.dispose();
+    this.history = new LayerHistory<TSnapshot>(this, backend, maxItems) as LayerHistory<unknown>;
+  }
+
+  getHistory(): LayerHistory<unknown> | undefined {
+    return this.history;
+  }
+
+  captureHistory(bounds?: SurfaceBounds): unknown | undefined {
+    return this.history?.capture(bounds);
+  }
+
+  pushHistory(snapshot: unknown): void {
+    this.history?.push(snapshot);
+  }
+
+  commitHistory(bounds?: SurfaceBounds): unknown | undefined {
+    return this.history?.commit(bounds);
+  }
+
+  undo(): void {
+    this.history?.undo();
+  }
+
+  redo(): void {
+    this.history?.redo();
+  }
+
+  canUndo(): boolean {
+    return this.history?.canUndo() ?? false;
+  }
+
+  canRedo(): boolean {
+    return this.history?.canRedo() ?? false;
+  }
+
+  clearHistory(): void {
+    this.history?.clear();
+  }
+
+  exportHistoryRaw(): { undoStack: HistoryRawSnapshot[]; redoStack: HistoryRawSnapshot[] } | undefined {
+    return this.history?.exportRaw();
+  }
+
+  importHistoryRaw(undoStack: HistoryRawSnapshot[], redoStack: HistoryRawSnapshot[]): void {
+    this.history?.importRaw(undoStack, redoStack);
+  }
+
+  pushHistoryRaw(snapshot: HistoryRawSnapshot): void {
+    this.history?.pushRaw(snapshot);
+  }
+
+  commitHistoryFromTexture(texture: WebGLTexture, bounds: SurfaceBounds): void {
+    const history = this.history;
+    if (!history) return;
+    const buffer = this.readTexturePixelsFrom(texture, bounds);
+    history.pushRaw({
+      bounds,
+      size: { width: bounds.width, height: bounds.height },
+      buffer,
+    });
+  }
+
   dispose(): void {
     if (this.disposed) return;
     const { gl } = this;
 
+    this.history?.dispose();
     for (const program of this.programs.values()) {
       gl.deleteProgram(program);
     }
@@ -150,9 +218,97 @@ export class Layer {
     const out = new Uint8Array(this.size.width * this.size.height * 4);
     gl.readPixels(0, 0, this.size.width, this.size.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
 
-    if (options?.flipYFromOriginal) {
+    if (options?.flipY) {
       flipPixelsYInPlace(out, this.size.width, this.size.height);
     }
+    return out;
+  }
+
+  readPixels(bounds: SurfaceBounds): Uint8Array {
+    this.assertNotDisposed();
+    const { gl } = this;
+    this.bindFramebuffer(this.textures.front);
+
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    const out = new Uint8Array(bounds.width * bounds.height * 4);
+    gl.readPixels(bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
+    return out;
+  }
+
+  writePixels(bounds: SurfaceBounds, buffer: Uint8Array): void {
+    this.assertNotDisposed();
+    const expected = bounds.width * bounds.height * 4;
+    if (buffer.length !== expected) {
+      throw new Error(`Layer.writePixels: buffer length ${buffer.length} !== expected ${expected}`);
+    }
+    const { gl } = this;
+    gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+  }
+
+  copyTexture(bounds: SurfaceBounds): WebGLTexture {
+    this.assertNotDisposed();
+    const { gl } = this;
+    const tex = this.createTexture(bounds.width, bounds.height);
+    this.bindFramebuffer(this.textures.front);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, bounds.x, bounds.y, bounds.width, bounds.height);
+    return tex;
+  }
+
+  drawTexture(bounds: SurfaceBounds, texture: WebGLTexture): void {
+    this.assertNotDisposed();
+    const { gl } = this;
+    const program = this.getOrCreateProgram('__history_copy__', COPY_FRAG_300ES);
+
+    this.copyFrontToBack();
+    this.bindFramebuffer(this.textures.back);
+    gl.viewport(bounds.x, bounds.y, bounds.width, bounds.height);
+    gl.disable(gl.BLEND);
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    const srcLoc = gl.getUniformLocation(program, 'u_src');
+    if (srcLoc) gl.uniform1i(srcLoc, 0);
+
+    gl.bindVertexArray(this.vao);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.bindVertexArray(null);
+    gl.useProgram(null);
+
+    this.swapTextures();
+  }
+
+  createTextureFromRaw(buffer: Uint8Array, size: Size): WebGLTexture {
+    this.assertNotDisposed();
+    const expected = size.width * size.height * 4;
+    if (buffer.length !== expected) {
+      throw new Error(`Layer.createTextureFromRaw: buffer length ${buffer.length} !== expected ${expected}`);
+    }
+    return this.createTexture(size.width, size.height, buffer);
+  }
+
+  readTexturePixels(texture: WebGLTexture, size: Size): Uint8Array {
+    this.assertNotDisposed();
+    const { gl } = this;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    const out = new Uint8Array(size.width * size.height * 4);
+    gl.readPixels(0, 0, size.width, size.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
+    return out;
+  }
+
+  readTexturePixelsFrom(texture: WebGLTexture, bounds: SurfaceBounds): Uint8Array {
+    this.assertNotDisposed();
+    const { gl } = this;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    const out = new Uint8Array(bounds.width * bounds.height * 4);
+    gl.readPixels(bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
     return out;
   }
 

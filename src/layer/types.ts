@@ -14,7 +14,7 @@ export type LayerInit = Size & {
 };
 
 export type LayerExportOptions = {
-  flipYFromOriginal?: boolean;
+  flipY?: boolean;
 };
 
 export type LayerEffectUniformValue = number | readonly number[];

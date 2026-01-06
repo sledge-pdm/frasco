@@ -46,6 +46,9 @@ export class CircleLineShape extends GripShape {
       const bounds: SurfaceBounds | undefined = prevBounds && nextBounds ? mergeBounds(prevBounds, nextBounds) : nextBounds;
       this.merge(layer, point.style, bounds);
     }
+    if (this.baseTexture && this.lastBounds) {
+      layer.commitHistoryFromTexture(this.baseTexture, this.lastBounds);
+    }
     this.endStroke(layer);
     this.startPoint = undefined;
   }

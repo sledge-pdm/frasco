@@ -13,7 +13,8 @@
     "dev:build": "vite build",
     "preview": "vite preview",
     "prettier": "prettier --write . --config .prettierrc",
-    "format": "pnpm prettier"
+    "format": "pnpm prettier",
+    "wasm:build": "wasm-pack build ./src/wasm --target bundler && rm ./src/wasm/pkg/.gitignore && rm ./src/wasm/pkg/package.json"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "^4.0.16",
@@ -21,7 +22,9 @@
     "playwright": "^1.57.0",
     "vitest": "^4.0.16",
     "prettier": "^3.7.4",
-    "prettier-plugin-organize-imports": "^4.3.0"
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0"
   },
   "keywords": [],
   "author": "innsbluck",

@@ -33,11 +33,23 @@
             <input id="color" type="color" value="#ff2d2d" />
           </label>
           <label>
+            History Backend
+            <select id="historyBackend">
+              <option value="webp" selected>Webp</option>
+              <option value="texture">Texture</option>
+            </select>
+          </label>
+          <label>
             Use PointerRawUpdate
             <input id="useRawUpdate" type="checkbox" checked />
           </label>
           <div id="eventStats" class="event-stats">move: 0 / raw: 0 / last: -</div>
+          <div>
+            <button id="undo" type="button">Undo</button>
+            <button id="redo" type="button">Redo</button>
+          </div>
           <button id="clear" type="button">Clear</button>
+          <button id="downloadPng" type="button">Download PNG</button>
         </div>
         <p class="note">Drag to draw. Coordinates use layer space (bottom-left origin).</p>
       </section>

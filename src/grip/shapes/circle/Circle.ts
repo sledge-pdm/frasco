@@ -33,6 +33,9 @@ export class CircleShape extends GripShape {
     this.drawLine(layer, prev, point);
     this.drawPoint(layer, point.x, point.y, point.style);
     this.merge(layer, point.style);
+    if (this.baseTexture && this.strokeBounds) {
+      layer.commitHistoryFromTexture(this.baseTexture, this.strokeBounds);
+    }
     this.endStroke(layer);
   }
 

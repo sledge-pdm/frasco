@@ -9,6 +9,8 @@ import {
   Layer,
   SimpleCircleShape,
   SquareShape,
+  TextureHistoryBackend,
+  WebpHistoryBackend,
 } from '../index';
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement | null;
@@ -16,11 +18,25 @@ const shapeSelect = document.getElementById('shape') as HTMLSelectElement | null
 const sizeInput = document.getElementById('size') as HTMLInputElement | null;
 const opacityInput = document.getElementById('opacity') as HTMLInputElement | null;
 const colorInput = document.getElementById('color') as HTMLInputElement | null;
+const historyBackendSelect = document.getElementById('historyBackend') as HTMLSelectElement | null;
 const useRawUpdateInput = document.getElementById('useRawUpdate') as HTMLInputElement | null;
 const eventStats = document.getElementById('eventStats') as HTMLDivElement | null;
+const undoButton = document.getElementById('undo') as HTMLButtonElement | null;
+const redoButton = document.getElementById('redo') as HTMLButtonElement | null;
 const clearButton = document.getElementById('clear') as HTMLButtonElement | null;
+const downloadPngButton = document.getElementById('downloadPng') as HTMLButtonElement | null;
 
-if (!canvas || !shapeSelect || !sizeInput || !opacityInput || !colorInput || !useRawUpdateInput || !eventStats || !clearButton) {
+if (
+  !canvas ||
+  !shapeSelect ||
+  !sizeInput ||
+  !opacityInput ||
+  !colorInput ||
+  !historyBackendSelect ||
+  !useRawUpdateInput ||
+  !eventStats ||
+  !clearButton
+) {
   throw new Error('Manual: missing required elements');
 }
 
@@ -30,6 +46,7 @@ if (!gl) {
 }
 
 const layer = new Layer(gl, { width: 1, height: 1 });
+applyHistoryBackend();
 const grip = new Grip({ inputSpace: 'canvas' });
 
 const shapes = new Map<string, SimpleCircleShape | CircleShape | SquareShape | CircleLineShape>([
@@ -69,6 +86,19 @@ updateMoveListener();
 shapeSelect.addEventListener('change', () => {
   shape = shapes.get(shapeSelect.value) ?? new SimpleCircleShape();
 });
+
+historyBackendSelect.addEventListener('change', () => {
+  applyHistoryBackend();
+});
+
+function applyHistoryBackend(): void {
+  if (!historyBackendSelect) throw new Error('history backend select not defined');
+  if (historyBackendSelect.value === 'texture') {
+    layer.setHistoryBackend(new TextureHistoryBackend());
+  } else {
+    layer.setHistoryBackend(new WebpHistoryBackend());
+  }
+}
 
 function updateMoveListener() {
   if (canvas === null || useRawUpdateInput === null) throw new Error('elements not defined');
@@ -257,3 +287,56 @@ function updateEventStats(): void {
   if (eventStats === null) return;
   eventStats.textContent = `move: ${moveCount} / raw: ${rawCount} / last: ${lastEvent}`;
 }
+
+downloadPngButton?.addEventListener('click', () => {
+  downloadPng();
+});
+
+function downloadPng() {
+  const buffer = layer.exportRaw({ flipY: true });
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const width = layer.getWidth();
+  const height = layer.getHeight();
+  canvas.width = width;
+  canvas.height = height;
+
+  const imageData = new ImageData(new Uint8ClampedArray(buffer), width, height);
+
+  ctx.putImageData(imageData, 0, 0);
+
+  const dataUrl = canvas.toDataURL('image/png', 0.8);
+
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = 'download.png';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+undoButton?.addEventListener('click', () => {
+  if (layer.canUndo()) layer.undo();
+  else console.warn('cannot undo');
+});
+
+redoButton?.addEventListener('click', () => {
+  if (layer.canRedo()) layer.redo();
+  else console.warn('cannot redo');
+});
+
+window.addEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.ctrlKey) {
+    if (e.key === 'z') {
+      if (layer.canUndo()) layer.undo();
+      else console.warn('cannot undo');
+    }
+    if (e.key === 'y' || (e.shiftKey && e.key === 'z')) {
+      if (layer.canRedo()) layer.redo();
+      else console.warn('cannot redo');
+    }
+  }
+});
