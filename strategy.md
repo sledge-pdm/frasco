@@ -71,3 +71,11 @@
   > **Note that this means layer always has Y flipped texture compared with original input buffer!**
 
 - `frasco` is responsible for flipping to canvas coordinate system before output/rendering.
+
+### Coordinate system (simple rules)
+
+- Input pointer events are in canvas space (origin at top-left).
+- `Grip` with `inputSpace: 'canvas'` flips Y once to map into `layer` (GL space).
+- `layer` always stores textures in GL space (origin at bottom-left).
+- `Frasco.compose` defaults to no flip (GL -> WebGL canvas is 1:1).
+- If you need 2D canvas / image output, flip Y at output (`Layer.exportRaw({ flipY: true })` or `Frasco.compose({ flipY: true })`).
