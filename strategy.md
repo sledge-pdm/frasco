@@ -12,10 +12,10 @@
 
 ### P2
 
-- [ ] write `grip` interfaces
-- [ ] write minimum brush shape (solid circle, linear completion, & no pressure censoring)
-- [ ] write unit tests
-- [ ] write e2e tests
+- [x] write `grip` interfaces
+- [x] write minimum brush shape (solid circle, linear completion, & no pressure censoring)
+- [x] write unit tests
+- [x] write e2e tests
 
 ### P3
 

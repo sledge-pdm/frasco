@@ -1,3 +1,5 @@
+import { MaskSurfaceImpl } from '../surface/MaskSurface';
+import type { MaskSurface, SurfaceBounds } from '../surface/types';
 import { FULLSCREEN_VERT_300ES } from './shaders';
 import type { LayerEffect, LayerExportOptions, LayerInit, RawPixelData, Rgba8, Size } from './types';
 
@@ -55,6 +57,27 @@ export class Layer {
   getTextureHandle(): WebGLTexture {
     this.assertNotDisposed();
     return this.textures.front;
+  }
+
+  createMaskSurface(size?: Size): MaskSurface {
+    this.assertNotDisposed();
+    const target = size ?? this.size;
+    return new MaskSurfaceImpl(this.gl, target);
+  }
+
+  createTextureCopy(): WebGLTexture {
+    this.assertNotDisposed();
+    const { gl } = this;
+    const tex = this.createTexture(this.size.width, this.size.height);
+    this.bindFramebuffer(this.textures.front);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, this.size.width, this.size.height);
+    return tex;
+  }
+
+  deleteTexture(texture: WebGLTexture): void {
+    this.assertNotDisposed();
+    this.gl.deleteTexture(texture);
   }
 
   dispose(): void {
@@ -138,6 +161,11 @@ export class Layer {
     this.runProgram(effect.fragmentSrc, effect.uniforms);
   }
 
+  applyEffectWithTextures(effect: LayerEffect, textures: Record<string, WebGLTexture>, bounds?: SurfaceBounds): void {
+    this.assertNotDisposed();
+    this.runProgramWithTextures(effect.fragmentSrc, effect.uniforms, textures, bounds);
+  }
+
   copyFrom(layer: Layer): void {
     this.assertNotDisposed();
     if (layer.getWidth() !== this.size.width || layer.getHeight() !== this.size.height) {
@@ -204,6 +232,72 @@ export class Layer {
     this.swapTextures();
   }
 
+  private runProgramWithTextures(
+    fragmentSrc: string,
+    uniforms: Record<string, number | readonly number[]> | undefined,
+    textures: Record<string, WebGLTexture>,
+    bounds?: SurfaceBounds
+  ): void {
+    const { gl } = this;
+    const program = this.getOrCreateProgram(fragmentSrc, fragmentSrc);
+
+    if (bounds) {
+      this.copyFrontToBack();
+    }
+    this.bindFramebuffer(this.textures.back);
+    gl.viewport(0, 0, this.size.width, this.size.height);
+    if (bounds) {
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(bounds.x, bounds.y, bounds.width, bounds.height);
+    } else {
+      gl.disable(gl.SCISSOR_TEST);
+    }
+    gl.disable(gl.BLEND);
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
+    const srcLoc = gl.getUniformLocation(program, 'u_src');
+    if (srcLoc) gl.uniform1i(srcLoc, 0);
+
+    let unit = 1;
+    for (const [name, texture] of Object.entries(textures)) {
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      const loc = gl.getUniformLocation(program, name);
+      if (loc) gl.uniform1i(loc, unit);
+      unit += 1;
+    }
+
+    if (uniforms) {
+      for (const [name, value] of Object.entries(uniforms)) {
+        const loc = gl.getUniformLocation(program, name);
+        if (!loc) continue;
+        if (typeof value === 'number') {
+          gl.uniform1f(loc, value);
+        } else if (value.length === 1) {
+          gl.uniform1f(loc, value[0] as number);
+        } else if (value.length === 2) {
+          gl.uniform2f(loc, value[0] as number, value[1] as number);
+        } else if (value.length === 3) {
+          gl.uniform3f(loc, value[0] as number, value[1] as number, value[2] as number);
+        } else if (value.length === 4) {
+          gl.uniform4f(loc, value[0] as number, value[1] as number, value[2] as number, value[3] as number);
+        } else {
+          throw new Error(`Layer.runProgram: unsupported uniform length for ${name}`);
+        }
+      }
+    }
+
+    gl.bindVertexArray(this.vao);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.bindVertexArray(null);
+    gl.useProgram(null);
+    if (bounds) gl.disable(gl.SCISSOR_TEST);
+
+    this.swapTextures();
+  }
+
   private swapTextures(): void {
     const tmp = this.textures.front;
     this.textures.front = this.textures.back;
@@ -230,6 +324,13 @@ export class Layer {
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data ?? null);
     return tex;
+  }
+
+  private copyFrontToBack(): void {
+    const { gl } = this;
+    this.bindFramebuffer(this.textures.front);
+    gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, this.size.width, this.size.height);
   }
 
   private getOrCreateProgram(key: string, fragmentSrc: string): WebGLProgram {

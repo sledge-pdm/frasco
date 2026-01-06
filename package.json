@@ -9,11 +9,15 @@
   "scripts": {
     "test": "vitest run --browser",
     "test:ui": "vitest --browser",
+    "dev": "vite",
+    "dev:build": "vite build",
+    "preview": "vite preview",
     "prettier": "prettier --write . --config .prettierrc",
     "format": "pnpm prettier"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "^4.0.16",
+    "vite": "^7.3.0",
     "playwright": "^1.57.0",
     "vitest": "^4.0.16",
     "prettier": "^3.7.4",

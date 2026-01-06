@@ -13,6 +13,7 @@ export default defineConfig({
       screenshotFailures: false,
     },
     diff: {
+      // truncate too long buffer diff
       truncateThreshold: 10,
     },
   },
