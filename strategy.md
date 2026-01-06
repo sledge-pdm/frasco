@@ -21,8 +21,8 @@
 
 - [x] write effects
 - [x] write history system
-- [ ] write unit tests
-- [ ] write e2e tests
+- [x] write unit tests
+- [ ] write e2e tests (! too lazy)
 
 ### P4
 

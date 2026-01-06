@@ -1,20 +1,12 @@
 import { describe, it } from 'vitest';
 import { CircleShape, Grip } from '../../src/grip';
-import { HistoryBackend, TextureHistoryBackend, WebpHistoryBackend } from '../../src/history';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
-
-const BACKENDS: {
-  name: string;
-  make: () => HistoryBackend<any>;
-}[] = [
-  { name: 'webp', make: () => new WebpHistoryBackend() },
-  { name: 'texture', make: () => new TextureHistoryBackend() },
-];
+import { HISTORY_BACKENDS } from './utils';
 
 describe('History (grip integration)', () => {
-  for (const backend of BACKENDS) {
+  for (const backend of HISTORY_BACKENDS) {
     it(`undo/redo with ${backend.name} backend`, () => {
       const gl = makeGL2Context(64, 64);
       const layer = new Layer(gl, { width: 64, height: 64 });

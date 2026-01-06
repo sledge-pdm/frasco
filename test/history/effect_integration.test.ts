@@ -1,24 +1,16 @@
 import { describe, it } from 'vitest';
 import { InvertEffect } from '../../src/effects';
-import { HistoryBackend, TextureHistoryBackend, WebpHistoryBackend } from '../../src/history';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
 import { loadImageData } from '../support/e2e';
 import { makeGL2Context } from '../support/gl';
-
-const BACKENDS: {
-  name: string;
-  make: () => HistoryBackend<any>;
-}[] = [
-  { name: 'webp', make: () => new WebpHistoryBackend() },
-  { name: 'texture', make: () => new TextureHistoryBackend() },
-];
+import { HISTORY_BACKENDS } from './utils';
 
 describe('History (effects integration)', () => {
   const originalPath = new URL('../effects/e2e/original.png', import.meta.url);
   const invertPath = new URL('../effects/e2e/invert.png', import.meta.url);
 
-  for (const backend of BACKENDS) {
+  for (const backend of HISTORY_BACKENDS) {
     it(`undo/redo with ${backend.name} backend`, async () => {
       const original = await loadImageData(originalPath);
       const expected = await loadImageData(invertPath);
