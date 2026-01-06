@@ -47,3 +47,11 @@ pnpm install
 pnpm playwright install chromium
 pnpm test
 ```
+
+## special thanks
+
+### Fluid Paint (by David Li)
+
+- https://github.com/dli/paint
+- [This demo](https://david.li/paint/) gave me confident that I can rewrite layer operations with full WebGL features.
+  Definitely should take a look at this (it's AMAZING)

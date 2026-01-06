@@ -1,5 +1,15 @@
-import type { GripPoint, GripStrokeStyle } from '../index';
-import { CircleShape, COPY_FRAG_300ES, FULLSCREEN_VERT_300ES, Grip, Layer, SimpleCircleShape } from '../index';
+import {
+  CircleLineShape,
+  CircleShape,
+  COPY_FRAG_300ES,
+  FULLSCREEN_VERT_300ES,
+  Grip,
+  GripPoint,
+  GripStrokeStyle,
+  Layer,
+  SimpleCircleShape,
+  SquareShape,
+} from '../index';
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement | null;
 const shapeSelect = document.getElementById('shape') as HTMLSelectElement | null;
@@ -21,9 +31,12 @@ if (!gl) {
 
 const layer = new Layer(gl, { width: 1, height: 1 });
 const grip = new Grip({ inputSpace: 'canvas' });
-const shapes = new Map<string, SimpleCircleShape | CircleShape>([
+
+const shapes = new Map<string, SimpleCircleShape | CircleShape | SquareShape | CircleLineShape>([
   ['simple-circle', new SimpleCircleShape()],
   ['circle', new CircleShape()],
+  ['square', new SquareShape()],
+  ['circle-line', new CircleLineShape()],
 ]);
 let shape = shapes.get(shapeSelect.value) ?? new SimpleCircleShape();
 
