@@ -1,3 +1,3 @@
 export { Frasco } from './Frasco';
-export type { CompositeLayer, ComposeOptions, FrascoOptions } from './types';
 export { BlendMode, blendModeIds, getBlendModeId } from './types';
+export type { ComposeOptions, CompositeLayer, FrascoOptions } from './types';

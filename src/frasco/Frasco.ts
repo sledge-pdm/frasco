@@ -1,7 +1,7 @@
 import { FULLSCREEN_VERT_300ES } from '../layer/shaders';
 import type { RgbaFloat, Size } from '../layer/types';
 import { BLEND_FRAG_300ES, COPY_FRAG_FLIP_300ES } from './shaders';
-import type { CompositeLayer, ComposeOptions, FrascoOptions } from './types';
+import type { ComposeOptions, CompositeLayer, FrascoOptions } from './types';
 import { getBlendModeId } from './types';
 
 type TexturePair = {

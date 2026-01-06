@@ -20,12 +20,7 @@ export function createTexture(gl: WebGL2RenderingContext, width: number, height:
   return tex;
 }
 
-export function readTexturePixels(
-  gl: WebGL2RenderingContext,
-  texture: WebGLTexture,
-  width: number,
-  height: number
-): Uint8Array {
+export function readTexturePixels(gl: WebGL2RenderingContext, texture: WebGLTexture, width: number, height: number): Uint8Array {
   const fbo = gl.createFramebuffer();
   if (!fbo) throw new Error('WebGL: failed to create framebuffer');
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
