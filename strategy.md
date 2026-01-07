@@ -33,8 +33,8 @@
 
 ### P5
 
-- [ ] write integrated tests
-- [ ] integration to sledge
+- [x] write integrated tests
+- [x] integration to sledge
 
 ## Notices
 

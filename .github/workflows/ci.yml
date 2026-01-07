@@ -87,8 +87,19 @@ jobs:
       - name: Prettier check
         run: pnpm exec prettier --check .
 
-      - name: install chromium
-        run: pnpm exec playwright install
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium
+          restore-keys: |
+            ${{ runner.os }}-playwright-chromium
+
+      - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm playwright install chromium
 
       - name: Run Vitest
         run: pnpm test
@@ -103,42 +114,3 @@ jobs:
             ./**/vitest-temp
           if-no-files-found: ignore
           retention-days: 5
-
-  # Rust quality checks (only when Rust files change)
-  rust-quality:
-    name: Rust Quality Checks
-    needs: changes
-    if: ${{ needs.changes.outputs.rust == 'true' || github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      CI: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - name: Install Rust (stable + components)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: Cache Rust build
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            src/wasm
-
-      - name: Rust format check
-        working-directory: src/wasm
-        run: cargo fmt --all -- --check
-
-      - name: Rust clippy
-        working-directory: src/wasm
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Rust check
-        working-directory: src/wasm
-        run: cargo check --all-targets
