@@ -13,45 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Detect changes to determine which jobs to run
-  changes:
-    name: Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      rust: ${{ steps.changes.outputs.rust }}
-      ts: ${{ steps.changes.outputs.ts }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            rust:
-              - 'src/wasm/**'
-              - '**/Cargo.toml'
-              - '**/Cargo.lock'
-            ts:
-              - '**/*.ts'
-              - '**/*.tsx'
-              - '**/*.js'
-              - '**/*.jsx'
-              - '**/*.json'
-              - '**/*.css'
-              - '**/package.json'
-              - '**/pnpm-lock.yaml'
-              - '**/tsconfig.json'
-              - '**/vite.config.*'
-              - '**/vitest.config.*'
-
-  # TypeScript/Node.js quality checks
   ts-quality:
     name: TypeScript Quality & Tests
-    needs: changes
-    if: ${{ needs.changes.outputs.ts == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
