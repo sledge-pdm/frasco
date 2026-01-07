@@ -87,6 +87,9 @@ jobs:
       - name: Prettier check
         run: pnpm exec prettier --check .
 
+      - name: install chromium
+        run: pnpm exec playwright install
+
       - name: Run Vitest
         run: pnpm test
 
