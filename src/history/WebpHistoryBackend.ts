@@ -1,6 +1,6 @@
+import { rawToWebp, webpToRaw } from '@sledge-pdm/core';
 import type { Size } from '../layer/types';
 import type { SurfaceBounds } from '../surface/types';
-import { rawToWebp, webpToRaw } from '../utils/buffer';
 import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget, WebpHistorySnapshot } from './types';
 
 export class WebpHistoryBackend implements HistoryBackend<WebpHistorySnapshot> {

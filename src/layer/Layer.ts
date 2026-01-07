@@ -1,9 +1,10 @@
+import { RawPixelData } from '@sledge-pdm/core';
 import { LayerHistory } from '../history/LayerHistory';
 import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from '../history/types';
 import { MaskSurfaceImpl } from '../surface/MaskSurface';
 import type { MaskSurface, SurfaceBounds } from '../surface/types';
 import { COPY_FRAG_300ES, FULLSCREEN_VERT_300ES } from './shaders';
-import type { LayerEffect, LayerExportOptions, LayerInit, RawPixelData, Rgba8, Size } from './types';
+import type { LayerEffect, LayerExportOptions, LayerInit, Rgba8, Size } from './types';
 
 type TexturePair = {
   front: WebGLTexture;

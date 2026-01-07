@@ -67,6 +67,18 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
+  replaceBuffer(buffer: Uint8Array | Uint8ClampedArray): void {
+    this.assertNotDisposed();
+    const expected = this.size.width * this.size.height * 4;
+    if (buffer.length !== expected) {
+      throw new Error(`MaskSurface.replaceBuffer: buffer length ${buffer.length} !== expected ${expected}`);
+    }
+    const { gl } = this;
+    gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+  }
+
   applyEffect(effect: MaskSurfaceEffect, options?: MaskSurfaceApplyOptions): void {
     this.assertNotDisposed();
     this.runProgram(effect.fragmentSrc, effect.uniforms, options);

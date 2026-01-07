@@ -3,3 +3,6 @@
 
 node_modules
 __screenshots__/
+
+dist
+target

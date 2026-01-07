@@ -1,4 +1,4 @@
-export type RawPixelData = Uint8Array | Uint8ClampedArray;
+import { RawPixelData } from '@sledge-pdm/core';
 
 export type Size = {
   width: number;
