@@ -64,8 +64,8 @@ export class Grip {
     const y = layer.getHeight() - 1 - point.y;
     return {
       ...point,
-      x: Math.floor(point.x),
-      y: Math.floor(y),
+      x: point.x,
+      y: y,
     };
   }
 }
