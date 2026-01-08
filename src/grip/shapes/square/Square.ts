@@ -8,7 +8,7 @@ import { SQUARE_MASK_POINT_300ES } from './shaders/mask_point';
 import { SQUARE_MERGE_300ES } from './shaders/merge';
 
 /**
- * @description Square shape with side length defined as size * 2.
+ * @description Square shape with side length defined as size.
  */
 export class SquareShape extends GripShape {
   readonly id = 'square';
@@ -41,8 +41,8 @@ export class SquareShape extends GripShape {
 
   private drawLine(layer: Layer, from: GripPoint, to: GripPoint): void {
     const style = to.style;
-    const half = sizeToHalf(style.size);
-    if (half <= 0) return;
+    const { half, centerOffset } = resolveSquareParams(style.size);
+    if (half < 0) return;
 
     const mask = this.ensureMask(layer);
     const bounds = makeLineBounds(layer, from, to, half);
@@ -51,8 +51,8 @@ export class SquareShape extends GripShape {
       {
         fragmentSrc: SQUARE_MASK_COMPLETION_300ES,
         uniforms: {
-          u_from: [from.x + 0.5, from.y + 0.5],
-          u_to: [to.x + 0.5, to.y + 0.5],
+          u_from: [from.x + centerOffset, from.y + centerOffset],
+          u_to: [to.x + centerOffset, to.y + centerOffset],
           u_half: half,
         },
       },
@@ -61,8 +61,8 @@ export class SquareShape extends GripShape {
   }
 
   private drawPoint(layer: Layer, x: number, y: number, style: GripStrokeStyle): void {
-    const half = sizeToHalf(style.size);
-    if (half <= 0) return;
+    const { half, centerOffset } = resolveSquareParams(style.size);
+    if (half < 0) return;
 
     const mask = this.ensureMask(layer);
     const bounds = makePointBounds(layer, x, y, half);
@@ -71,7 +71,7 @@ export class SquareShape extends GripShape {
       {
         fragmentSrc: SQUARE_MASK_POINT_300ES,
         uniforms: {
-          u_center: [x + 0.5, y + 0.5],
+          u_center: [x + centerOffset, y + centerOffset],
           u_half: half,
         },
       },
@@ -164,8 +164,10 @@ export class SquareShape extends GripShape {
   }
 }
 
-function sizeToHalf(size: number): number {
-  return Math.max(0, size);
+function resolveSquareParams(size: number): { half: number; centerOffset: number } {
+  const half = (size - 1) / 2;
+  const centerOffset = size % 2 === 0 ? 0 : 0.5;
+  return { half, centerOffset };
 }
 
 function normalizeColor(color: GripColor): [number, number, number, number] {
