@@ -41,18 +41,22 @@ export class SquareShape extends GripShape {
 
   private drawLine(layer: Layer, from: GripPoint, to: GripPoint): void {
     const style = to.style;
-    const { half, centerOffset } = resolveSquareParams(style.size);
+    const half = squareHalf(style.size);
     if (half < 0) return;
+    const fromX = snapSquareCenter(from.x, style.size);
+    const fromY = snapSquareCenter(from.y, style.size);
+    const toX = snapSquareCenter(to.x, style.size);
+    const toY = snapSquareCenter(to.y, style.size);
 
     const mask = this.ensureMask(layer);
-    const bounds = makeLineBounds(layer, from, to, half);
+    const bounds = makeLineBounds(layer, { ...from, x: fromX, y: fromY }, { ...to, x: toX, y: toY }, half);
     this.updateStrokeBounds(bounds);
     mask.applyEffect(
       {
         fragmentSrc: SQUARE_MASK_COMPLETION_300ES,
         uniforms: {
-          u_from: [from.x + centerOffset, from.y + centerOffset],
-          u_to: [to.x + centerOffset, to.y + centerOffset],
+          u_from: [fromX, fromY],
+          u_to: [toX, toY],
           u_half: half,
         },
       },
@@ -61,17 +65,19 @@ export class SquareShape extends GripShape {
   }
 
   private drawPoint(layer: Layer, x: number, y: number, style: GripStrokeStyle): void {
-    const { half, centerOffset } = resolveSquareParams(style.size);
+    const half = squareHalf(style.size);
     if (half < 0) return;
+    const centerX = snapSquareCenter(x, style.size);
+    const centerY = snapSquareCenter(y, style.size);
 
     const mask = this.ensureMask(layer);
-    const bounds = makePointBounds(layer, x, y, half);
+    const bounds = makePointBounds(layer, centerX, centerY, half);
     this.updateStrokeBounds(bounds);
     mask.applyEffect(
       {
         fragmentSrc: SQUARE_MASK_POINT_300ES,
         uniforms: {
-          u_center: [x + centerOffset, y + centerOffset],
+          u_center: [centerX, centerY],
           u_half: half,
         },
       },
@@ -164,10 +170,15 @@ export class SquareShape extends GripShape {
   }
 }
 
-function resolveSquareParams(size: number): { half: number; centerOffset: number } {
-  const half = (size - 1) / 2;
-  const centerOffset = size % 2 === 0 ? 0 : 0.5;
-  return { half, centerOffset };
+function squareHalf(size: number): number {
+  return (size - 1) / 2;
+}
+
+function snapSquareCenter(value: number, size: number): number {
+  if (size % 2 === 0) {
+    return Math.round(value);
+  }
+  return Math.round(value - 0.5) + 0.5;
 }
 
 function normalizeColor(color: GripColor): [number, number, number, number] {
