@@ -1,6 +1,6 @@
 {
   "name": "@sledge-pdm/frasco",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "WebGL Texture processing package for sledge",
   "author": "innsbluck",
   "license": "MIT",
@@ -20,6 +20,9 @@
     "prettier": "prettier --write . --config .prettierrc",
     "format": "pnpm prettier"
   },
+  "dependencies": {
+    "@sledge-pdm/core": "^1.0.6"
+  },
   "devDependencies": {
     "@vitest/browser-playwright": "^4.0.16",
     "playwright": "^1.57.0",
@@ -34,8 +37,5 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com/"
-  },
-  "dependencies": {
-    "@sledge-pdm/core": "^1.0.6"
   }
 }
