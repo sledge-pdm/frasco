@@ -101,7 +101,7 @@ describe('SquareShape', () => {
     grip.end(point);
 
     const expected = new Uint8Array(6 * 6 * 4);
-    setBlock(expected, 6, 1, 1, 2, 2, COLOR_RED);
+    setBlock(expected, 6, 1, 2, 2, 3, COLOR_RED);
 
     expectBufferEqual(layer.exportRaw(), expected);
     layer.dispose();

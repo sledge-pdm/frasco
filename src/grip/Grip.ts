@@ -61,7 +61,7 @@ export class Grip {
 
   private toLayerPoint(layer: Layer, point: GripPoint): GripPoint {
     if (this.options.inputSpace !== 'canvas') return point;
-    const y = layer.getHeight() - 1 - point.y;
+    const y = layer.getHeight() - point.y;
     return {
       ...point,
       x: point.x,
