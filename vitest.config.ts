@@ -17,7 +17,7 @@ export default defineConfig({
     },
     diff: {
       // truncate too long buffer diff
-      // truncateThreshold: 30,
+      // truncateThreshold: 20,
     },
   },
 });
