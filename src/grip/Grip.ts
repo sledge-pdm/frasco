@@ -1,6 +1,6 @@
-import { MaskStrokeInstrument } from '~/grip/instruments/MaskStrokeInstrument';
 import { Layer } from '../layer';
 import type { GripInstrument } from './Instrument';
+import { MaskStrokeInstrument } from './instruments/MaskStrokeInstrument';
 import type { GripKernel } from './Kernel';
 import type { GripPoint } from './types';
 
