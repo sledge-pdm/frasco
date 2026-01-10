@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { CircleKernel, GripPoint, LinePreviewInstrument } from '../../../src/grip2';
+import { CircleKernel, GripPoint, LinePreviewInstrument } from '../../../src/grip';
 import { Layer } from '../../../src/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';
@@ -44,13 +44,13 @@ describe('LinePreviewInstrument', () => {
     const end = makePoint(6.5, 6.5, 3, 1);
 
     instrument.start(layer, kernel, start);
-    instrument.addPoint(layer, kernel, mid, start);
+    instrument.addPoint(layer, kernel, mid);
     expectBufferEqual(layer.exportRaw(), renderSegment(kernel, start, mid, 9, 9));
 
-    instrument.addPoint(layer, kernel, end, mid);
+    instrument.addPoint(layer, kernel, end);
     expectBufferEqual(layer.exportRaw(), renderSegment(kernel, start, end, 9, 9));
 
-    instrument.end(layer, kernel, end, mid);
+    instrument.end(layer, kernel, end);
     expectBufferEqual(layer.exportRaw(), renderSegment(kernel, start, end, 9, 9));
     layer.dispose();
   });

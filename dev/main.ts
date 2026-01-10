@@ -1,20 +1,24 @@
 import {
-  CircleLineShape,
-  CircleShape,
+  CircleKernel,
   COPY_FRAG_300ES,
+  DirectStrokeInstrument,
   FULLSCREEN_VERT_300ES,
   Grip,
+  GripInstrument,
+  GripKernel,
   GripPoint,
   GripStrokeStyle,
   Layer,
-  SimpleCircleShape,
-  SquareShape,
+  LinePreviewInstrument,
+  MaskStrokeInstrument,
+  SquareKernel,
   TextureHistoryBackend,
   WebpHistoryBackend,
 } from '../index';
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement | null;
-const shapeSelect = document.getElementById('shape') as HTMLSelectElement | null;
+const kernelSelect = document.getElementById('kernel') as HTMLSelectElement | null;
+const instrumentSelect = document.getElementById('instrument') as HTMLSelectElement | null;
 const sizeInput = document.getElementById('size') as HTMLInputElement | null;
 const opacityInput = document.getElementById('opacity') as HTMLInputElement | null;
 const colorInput = document.getElementById('color') as HTMLInputElement | null;
@@ -28,7 +32,8 @@ const downloadPngButton = document.getElementById('downloadPng') as HTMLButtonEl
 
 if (
   !canvas ||
-  !shapeSelect ||
+  !kernelSelect ||
+  !instrumentSelect ||
   !sizeInput ||
   !opacityInput ||
   !colorInput ||
@@ -49,13 +54,17 @@ const layer = new Layer(gl, { width: 1, height: 1 });
 applyHistoryBackend();
 const grip = new Grip({ inputSpace: 'canvas' });
 
-const shapes = new Map<string, SimpleCircleShape | CircleShape | SquareShape | CircleLineShape>([
-  ['simple-circle', new SimpleCircleShape()],
-  ['circle', new CircleShape()],
-  ['square', new SquareShape()],
-  ['circle-line', new CircleLineShape()],
+const kernels = new Map<string, GripKernel>([
+  ['circle', new CircleKernel()],
+  ['square', new SquareKernel()],
 ]);
-let shape = shapes.get(shapeSelect.value) ?? new SimpleCircleShape();
+let kernel = kernels.get(kernelSelect.value) ?? new CircleKernel();
+const instruments = new Map<string, GripInstrument>([
+  ['direct_stroke', new DirectStrokeInstrument()],
+  ['mask_stroke', new MaskStrokeInstrument()],
+  ['line_preview', new LinePreviewInstrument()],
+]);
+let instrument = instruments.get(instrumentSelect.value) ?? new MaskStrokeInstrument();
 
 const display = createDisplayProgram(gl);
 let drawing = false;
@@ -83,8 +92,11 @@ useRawUpdateInput.addEventListener('change', (e) => {
 });
 updateMoveListener();
 
-shapeSelect.addEventListener('change', () => {
-  shape = shapes.get(shapeSelect.value) ?? new SimpleCircleShape();
+kernelSelect.addEventListener('change', () => {
+  kernel = kernels.get(kernelSelect.value) ?? new CircleKernel();
+});
+instrumentSelect.addEventListener('change', () => {
+  instrument = instruments.get(instrumentSelect.value) ?? new MaskStrokeInstrument();
 });
 
 historyBackendSelect.addEventListener('change', () => {
@@ -192,7 +204,7 @@ canvas.addEventListener('pointerdown', (evt) => {
   moveCount = 0;
   lastEvent = 'down';
   updateEventStats();
-  grip.start(layer, shape, toLayerPoint(evt));
+  grip.start(layer, kernel, toLayerPoint(evt), instrument);
 });
 
 function finishStroke(evt: PointerEvent): void {

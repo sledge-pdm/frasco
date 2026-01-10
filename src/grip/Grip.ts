@@ -1,50 +1,58 @@
+import { MaskStrokeInstrument } from '~/grip/instruments/MaskStrokeInstrument';
 import { Layer } from '../layer';
-import { GripShape } from './Shape';
+import type { GripInstrument } from './Instrument';
+import type { GripKernel } from './Kernel';
 import type { GripPoint } from './types';
 
 export type GripInputSpace = 'layer' | 'canvas';
 
 export type GripOptions = {
   inputSpace?: GripInputSpace;
+  instrument?: GripInstrument;
 };
 
 type GripSession = {
   layer: Layer;
-  shape: GripShape;
+  kernel: GripKernel;
+  instrument: GripInstrument;
   lastPoint: GripPoint;
 };
 
 export class Grip {
   private session: GripSession | undefined;
+  private readonly defaultInstrument: GripInstrument;
 
-  constructor(private readonly options: GripOptions = {}) {}
+  constructor(private readonly options: GripOptions = {}) {
+    this.defaultInstrument = options.instrument ?? new MaskStrokeInstrument();
+  }
 
   isInStroke(): boolean {
     return this.session !== undefined;
   }
 
-  start(layer: Layer, shape: GripShape, point: GripPoint): void {
+  start(layer: Layer, kernel: GripKernel, point: GripPoint, instrument?: GripInstrument): void {
     // Currently replace session even if already defined
     // if (this.isInStroke()) {
     //   console.warn(`Grip.start: already in stroke. replacing.`);
     // }
 
     const next = this.toLayerPoint(layer, point);
-    shape.start(layer, next);
-    this.session = { layer, shape, lastPoint: next };
+    const activeInstrument = instrument ?? this.defaultInstrument;
+    activeInstrument.start(layer, kernel, next);
+    this.session = { layer, kernel, instrument: activeInstrument, lastPoint: next };
   }
 
   addPoint(point: GripPoint): void {
     const session = this.assertSession('addPoint');
     const next = this.toLayerPoint(session.layer, point);
-    session.shape.addPoint(session.layer, next, { ...session.lastPoint });
+    session.instrument.addPoint(session.layer, session.kernel, next, { ...session.lastPoint });
     session.lastPoint = next;
   }
 
   end(point: GripPoint): void {
     const session = this.assertSession('end');
     const next = this.toLayerPoint(session.layer, point);
-    session.shape.end(session.layer, next, { ...session.lastPoint });
+    session.instrument.end(session.layer, session.kernel, next, { ...session.lastPoint });
     this.session = undefined;
   }
 

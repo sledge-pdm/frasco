@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { CircleShape, Grip } from '../../src/grip';
+import { CircleKernel, Grip, MaskStrokeInstrument } from '../../src/grip';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
@@ -14,11 +14,12 @@ describe('History (grip integration)', () => {
       layer.setHistoryBackend(backend.make());
 
       const grip = new Grip({ inputSpace: 'layer' });
-      const shape = new CircleShape();
+      const kernel = new CircleKernel();
+      const instrument = new MaskStrokeInstrument();
 
       const before = layer.exportRaw();
       const style = { color: [255, 0, 0, 255] as const, size: 12, opacity: 1 };
-      grip.start(layer, shape, { x: 10, y: 10, style });
+      grip.start(layer, kernel, { x: 10, y: 10, style }, instrument);
       grip.addPoint({ x: 20, y: 10, style });
       grip.end({ x: 20, y: 10, style });
 

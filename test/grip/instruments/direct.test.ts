@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { CircleKernel, DirectStrokeInstrument, GripPoint } from '../../../src/grip2';
+import { CircleKernel, DirectStrokeInstrument, GripPoint } from '../../../src/grip';
 import { Layer } from '../../../src/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';

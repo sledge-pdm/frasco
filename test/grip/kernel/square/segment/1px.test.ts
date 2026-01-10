@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { SquareKernel } from '~/grip2';
+import { SquareKernel } from '~/grip';
 import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../../../support/assert';
 import { loadImageData } from '../../../../support/e2e';

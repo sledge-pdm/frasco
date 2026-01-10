@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GripPoint, MaskStrokeInstrument, SquareKernel } from '../../../src/grip2';
+import { GripPoint, MaskStrokeInstrument, SquareKernel } from '../../../src/grip';
 import { Layer } from '../../../src/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';

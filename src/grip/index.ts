@@ -1,6 +1,9 @@
 export { Grip } from './Grip';
-export { CircleShape } from './shapes/circle/Circle';
-export { CircleLineShape } from './shapes/circle_line/CircleLine';
-export { SimpleCircleShape } from './shapes/simple_circle/SimpleCircle';
-export { SquareShape } from './shapes/square/Square';
+export type { GripInstrument } from './Instrument';
+export { DirectStrokeInstrument } from './instruments/DirectStrokeInstrument';
+export { LinePreviewInstrument } from './instruments/LinePreviewInstrument';
+export { MaskStrokeInstrument } from './instruments/MaskStrokeInstrument';
+export type { GripKernel } from './Kernel';
+export { CircleKernel } from './kernels/circle/CircleKernel';
+export { SquareKernel } from './kernels/square/SquareKernel';
 export type { GripColor, GripPoint, GripStrokeStyle } from './types';

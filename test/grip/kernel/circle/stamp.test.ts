@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { CircleKernel } from '../../../../src/grip2';
+import { CircleKernel } from '../../../../src/grip';
 import { Layer } from '../../../../src/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
