@@ -1,4 +1,5 @@
-import { describe, it } from 'vitest';
+import { initWebp } from '@sledge-pdm/core';
+import { beforeAll, describe, it } from 'vitest';
 import { InvertEffect } from '../../src/effects';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
@@ -7,6 +8,10 @@ import { makeGL2Context } from '../support/gl';
 import { HISTORY_BACKENDS } from './utils';
 
 describe('History (effects integration)', () => {
+  beforeAll(async () => {
+    await initWebp();
+  });
+
   const originalPath = new URL('../effects/e2e/original.png', import.meta.url);
   const invertPath = new URL('../effects/e2e/invert.png', import.meta.url);
 

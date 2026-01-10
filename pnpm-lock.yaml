@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@sledge-pdm/core':
-        specifier: ^1.0.6
-        version: 1.0.6
+        specifier: ^1.0.12
+        version: 1.0.12
     devDependencies:
       '@vitest/browser-playwright':
         specifier: ^4.0.16
@@ -323,8 +323,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@sledge-pdm/core@1.0.6':
-    resolution: {integrity: sha512-KSSD8nG7Rb6yhk9r9OgQ1qksVuDyeK1f0e5p2V0ZMl6kMD75GyZ88BRHJnJi6SDUvqB3exBwXrbe5SS+NPk8HQ==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/core/1.0.6/d053eb5971706b2cc62638552173d82bcb7ab2c7}
+  '@sledge-pdm/core@1.0.12':
+    resolution: {integrity: sha512-E4uceSvndH601dnPgdkNnFntOisxC7uREtY+ZTR732Ikrrs3WDw4f6jhUQvxK5kOmLUSsnw/BnbZgAEv/vVqCw==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/core/1.0.12/1d7801b6abe5e234ac1992c1151e4f38c8c98cfa}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -415,6 +415,9 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
+
+  '@types/pako@2.0.4':
+    resolution: {integrity: sha512-VWDCbrLeVXJM9fihYodcLiIv0ku+AlOa/TQ1SvYOaBuyrSKgEcro95LJyIsJ4vSo6BXIxOKxiJAat04CmST9Fw==}
 
   '@vitest/browser-playwright@4.0.16':
     resolution: {integrity: sha512-I2Fy/ANdphi1yI46d15o0M1M4M0UJrUiVKkH5oKeRZZCdPg0fw/cfTKZzv9Ge9eobtJYp4BGblMzXdXH0vcl5g==}
@@ -512,6 +515,9 @@ packages:
 
   obug@2.1.1:
     resolution: {integrity: sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ==}
+
+  pako@2.1.0:
+    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
@@ -865,7 +871,10 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.54.0':
     optional: true
 
-  '@sledge-pdm/core@1.0.6': {}
+  '@sledge-pdm/core@1.0.12':
+    dependencies:
+      '@types/pako': 2.0.4
+      pako: 2.1.0
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -931,6 +940,8 @@ snapshots:
   '@types/deep-eql@4.0.2': {}
 
   '@types/estree@1.0.8': {}
+
+  '@types/pako@2.0.4': {}
 
   '@vitest/browser-playwright@4.0.16(playwright@1.57.0)(vite@7.3.0)(vitest@4.0.16)':
     dependencies:
@@ -1061,6 +1072,8 @@ snapshots:
   nanoid@3.3.11: {}
 
   obug@2.1.1: {}
+
+  pako@2.1.0: {}
 
   pathe@2.0.3: {}
 

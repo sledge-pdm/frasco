@@ -21,7 +21,7 @@
     "format": "pnpm prettier"
   },
   "dependencies": {
-    "@sledge-pdm/core": "^1.0.6"
+    "@sledge-pdm/core": "^1.0.12"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "^4.0.16",

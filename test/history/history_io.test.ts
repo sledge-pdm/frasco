@@ -1,4 +1,5 @@
-import { describe, it } from 'vitest';
+import { initWebp } from '@sledge-pdm/core';
+import { beforeAll, describe, it } from 'vitest';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
@@ -19,6 +20,10 @@ function makePattern(width: number, height: number): Uint8Array {
 }
 
 describe('History (raw IO)', () => {
+  beforeAll(async () => {
+    await initWebp();
+  });
+
   for (const backend of HISTORY_BACKENDS) {
     it(`export/import raw roundtrip with ${backend.name}`, () => {
       const gl = makeGL2Context(6, 6);

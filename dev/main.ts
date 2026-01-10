@@ -1,3 +1,4 @@
+import { initWebp } from '@sledge-pdm/core';
 import {
   CircleKernel,
   COPY_FRAG_300ES,
@@ -15,6 +16,9 @@ import {
   TextureHistoryBackend,
   WebpHistoryBackend,
 } from '../index';
+
+import wasmUrl from '@sledge-pdm/core/wasm/libwebp/libwebp.wasm?url';
+await initWebp({ wasmUrl });
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement | null;
 const kernelSelect = document.getElementById('kernel') as HTMLSelectElement | null;

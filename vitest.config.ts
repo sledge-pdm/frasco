@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [wasmPlugin(), topLevelAwait()],
   test: {
     include: ['test/**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/sledge/**', '**/anvil/**'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
+    setupFiles: [path.resolve(__dirname, 'test/setup.ts')],
     browser: {
       provider: playwright(),
       enabled: true,
@@ -19,11 +20,6 @@ export default defineConfig({
     diff: {
       // truncate too long buffer diff
       // truncateThreshold: 20,
-    },
-  },
-  resolve: {
-    alias: {
-      '~': path.resolve(__dirname, 'src'),
     },
   },
 });

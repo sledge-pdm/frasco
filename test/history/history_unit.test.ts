@@ -1,4 +1,5 @@
-import { describe, it } from 'vitest';
+import { initWebp } from '@sledge-pdm/core';
+import { beforeAll, describe, it } from 'vitest';
 import { InvertEffect } from '../../src/effects';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
@@ -20,6 +21,10 @@ function makePattern(width: number, height: number): Uint8Array {
 }
 
 describe('History (unit)', () => {
+  beforeAll(async () => {
+    await initWebp();
+  });
+
   for (const backend of HISTORY_BACKENDS) {
     it(`undo/redo swaps snapshot with ${backend.name}`, () => {
       const gl = makeGL2Context(4, 4);
