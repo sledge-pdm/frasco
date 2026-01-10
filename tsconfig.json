@@ -12,8 +12,14 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["src/*"]
+    },
+    "types": ["vite/client"],
+    "rootDirs": ["src"]
   },
-  "include": ["index.ts", "src/**/*"],
-  "exclude": ["dist", "node_modules", "**/*.test.ts"]
+  "include": ["index.ts", "src/**/*", "test"],
+  "exclude": ["dist", "node_modules"]
 }

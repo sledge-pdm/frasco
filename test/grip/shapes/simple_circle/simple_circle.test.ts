@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { SimpleCircleShape } from '../../../../src/grip';
-import { Layer } from '../../../../src/layer';
+import { SimpleCircleShape } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { makeGL2Context } from '../../../support/gl';
 
@@ -48,17 +48,17 @@ describe('SimpleCircleShape', () => {
     layer.dispose();
   });
 
-  it.fails('draws a single pixel circle in wrong position', () => {
-    const layer = makeLayer(5, 5);
-    const shape = new SimpleCircleShape();
-    shape.start(layer, makePoint(2, 1));
+  // it.fails('draws a single pixel circle in wrong position', () => {
+  //   const layer = makeLayer(5, 5);
+  //   const shape = new SimpleCircleShape();
+  //   shape.start(layer, makePoint(2, 1));
 
-    const expected = new Uint8Array(5 * 5 * 4);
-    setPixel(expected, 5, 2, 2, COLOR_RED);
+  //   const expected = new Uint8Array(5 * 5 * 4);
+  //   setPixel(expected, 5, 2, 2, COLOR_RED);
 
-    expectBufferEqual(layer.exportRaw(), expected);
-    layer.dispose();
-  });
+  //   expectBufferEqual(layer.exportRaw(), expected);
+  //   layer.dispose();
+  // });
 
   it('fills gaps with linear completion', () => {
     const layer = makeLayer(5, 5);

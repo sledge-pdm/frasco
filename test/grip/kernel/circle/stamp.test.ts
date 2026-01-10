@@ -4,30 +4,7 @@ import { Layer } from '../../../../src/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
 import { makeGL2Context } from '../../../support/gl';
-
-const COLOR_BLACK = [0, 0, 0, 255] as const;
-
-type Point = {
-  x: number;
-  y: number;
-  style: {
-    color: typeof COLOR_BLACK;
-    size: number;
-    opacity: number;
-  };
-};
-
-function makePoint(x: number, y: number, size: number): Point {
-  return {
-    x,
-    y,
-    style: {
-      color: COLOR_BLACK,
-      size,
-      opacity: 1,
-    },
-  };
-}
+import { makePoint } from '../../kernel/point';
 
 async function runStampTest(url: URL) {
   const expected = await loadImageData(url);

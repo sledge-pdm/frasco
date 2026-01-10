@@ -4,42 +4,7 @@ import { Layer } from '../../../../src/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
 import { makeGL2Context, readTexturePixels } from '../../../support/gl';
-
-const COLOR_BLACK = [0, 0, 0, 255] as const;
-
-type Point = {
-  x: number;
-  y: number;
-  style: {
-    color: typeof COLOR_BLACK;
-    size: number;
-    opacity: number;
-  };
-};
-
-function makePoint(x: number, y: number, size: number): Point {
-  return {
-    x,
-    y,
-    style: {
-      color: COLOR_BLACK,
-      size,
-      opacity: 1,
-    },
-  };
-}
-
-function maskToAlpha(mask: Uint8Array): Uint8Array {
-  const out = new Uint8Array(mask.length);
-  for (let i = 0; i < mask.length; i += 4) {
-    const alpha = mask[i] ? 255 : 0;
-    out[i] = 0;
-    out[i + 1] = 0;
-    out[i + 2] = 0;
-    out[i + 3] = alpha;
-  }
-  return out;
-}
+import { makePoint, maskToAlpha } from '../../kernel/point';
 
 async function runMaskTest(url: URL) {
   const expected = await loadImageData(url);

@@ -1,4 +1,5 @@
 import { playwright } from '@vitest/browser-playwright';
+import path from 'path';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import wasmPlugin from 'vite-plugin-wasm';
 import { defineConfig } from 'vitest/config';
@@ -18,6 +19,11 @@ export default defineConfig({
     diff: {
       // truncate too long buffer diff
       // truncateThreshold: 20,
+    },
+  },
+  resolve: {
+    alias: {
+      '~': path.resolve(__dirname, 'src'),
     },
   },
 });
