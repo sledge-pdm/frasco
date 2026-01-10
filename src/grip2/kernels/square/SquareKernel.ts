@@ -1,10 +1,10 @@
+import type { GripColor, GripPoint } from '../../../grip/types';
 import type { Layer } from '../../../layer';
 import type { MaskSurface, SurfaceBounds } from '../../../surface/types';
-import type { GripPoint, GripColor } from '../../../grip/types';
 import type { GripKernel } from '../../Kernel';
+import { SQUARE_COMPLETION_300ES } from './shaders/completion';
 import { SQUARE_MASK_COMPLETION_300ES } from './shaders/mask_completion';
 import { SQUARE_MASK_POINT_300ES } from './shaders/mask_point';
-import { SQUARE_COMPLETION_300ES } from './shaders/completion';
 import { SQUARE_POINT_300ES } from './shaders/point';
 
 /**
