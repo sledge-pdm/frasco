@@ -3,6 +3,9 @@ import type { Size } from '../layer/types';
 import type { SurfaceBounds } from '../surface/types';
 import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget, WebpHistorySnapshot } from './types';
 
+/**
+ * @deprecated Current webp conversion may induce memory leak
+ */
 export class WebpHistoryBackend implements HistoryBackend<WebpHistorySnapshot> {
   capture(target: HistoryTarget, bounds?: SurfaceBounds): WebpHistorySnapshot {
     const size = target.getSize();

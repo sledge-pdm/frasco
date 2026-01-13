@@ -7,12 +7,21 @@ export type HistoryRawSnapshot = {
   buffer: Uint8Array;
 };
 
+export type DeflateHistorySnapshot = {
+  bounds: SurfaceBounds;
+  size: Size;
+  deflated: Uint8Array;
+};
+
 export type TextureHistorySnapshot = {
   bounds: SurfaceBounds;
   size: Size;
   texture: WebGLTexture;
 };
 
+/**
+ * @deprecated Current webp conversion may induce memory leak
+ */
 export type WebpHistorySnapshot = {
   bounds: SurfaceBounds;
   size: Size;
@@ -38,5 +47,6 @@ export interface HistoryBackend<TSnapshot> {
   disposeSnapshot?(target: HistoryTarget, snapshot: TSnapshot): void;
 }
 
+export type DeflateHistoryBackendType = HistoryBackend<DeflateHistorySnapshot>;
 export type TextureHistoryBackendType = HistoryBackend<TextureHistorySnapshot>;
 export type WebpHistoryBackendType = HistoryBackend<WebpHistorySnapshot>;

@@ -1,6 +1,7 @@
 import {
   CircleKernel,
   COPY_FRAG_300ES,
+  DeflateHistoryBackend,
   DirectStrokeInstrument,
   FULLSCREEN_VERT_300ES,
   Grip,
@@ -105,10 +106,16 @@ historyBackendSelect.addEventListener('change', () => {
 
 function applyHistoryBackend(): void {
   if (!historyBackendSelect) throw new Error('history backend select not defined');
-  if (historyBackendSelect.value === 'texture') {
-    layer.setHistoryBackend(new TextureHistoryBackend());
-  } else {
-    layer.setHistoryBackend(new WebpHistoryBackend());
+  switch (historyBackendSelect.value) {
+    case 'deflate':
+      layer.setHistoryBackend(new DeflateHistoryBackend());
+      break;
+    case 'texture':
+      layer.setHistoryBackend(new TextureHistoryBackend());
+      break;
+    case 'webp':
+      layer.setHistoryBackend(new WebpHistoryBackend());
+      break;
   }
 }
 

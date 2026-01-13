@@ -4,8 +4,8 @@ import { Layer } from '../../../../../src/layer';
 import { expectBufferEqual } from '../../../../support/assert';
 import { loadImageData } from '../../../../support/e2e';
 import { makeGL2Context } from '../../../../support/gl';
-import { makePoint } from '../../../kernel/point';
-import { SegmentType } from '../../../kernel/segment';
+import { makePoint } from '../../point';
+import { SegmentType } from '../../segment';
 
 const vertFrom: [number, number] = [1.5, 1.5];
 const vertTo: [number, number] = [1.5, 5.5];

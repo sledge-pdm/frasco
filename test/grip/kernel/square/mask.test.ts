@@ -4,7 +4,7 @@ import { Layer } from '../../../../src/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
 import { makeGL2Context, readTexturePixels } from '../../../support/gl';
-import { makePoint, maskToAlpha } from '../../kernel/point';
+import { makePoint, maskToAlpha } from '../point';
 
 async function runMaskTest(url: URL) {
   const expected = await loadImageData(url);

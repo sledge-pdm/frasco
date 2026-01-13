@@ -4,7 +4,7 @@ import { Layer } from '../../../../src/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
 import { makeGL2Context } from '../../../support/gl';
-import { makePoint } from '../../kernel/point';
+import { makePoint } from '../point';
 
 async function runStampTest(url: URL) {
   const expected = await loadImageData(url);
