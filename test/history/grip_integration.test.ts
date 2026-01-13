@@ -1,5 +1,4 @@
-import { initWebp } from '@sledge-pdm/core';
-import { beforeAll, describe, it } from 'vitest';
+import { describe, it } from 'vitest';
 import { CircleKernel, Grip, MaskStrokeInstrument } from '../../src/grip';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
@@ -7,10 +6,6 @@ import { makeGL2Context } from '../support/gl';
 import { HISTORY_BACKENDS } from './utils';
 
 describe('History (grip integration)', () => {
-  beforeAll(async () => {
-    await initWebp();
-  });
-
   for (const backend of HISTORY_BACKENDS) {
     it(`undo/redo with ${backend.name} backend`, () => {
       const gl = makeGL2Context(64, 64);

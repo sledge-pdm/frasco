@@ -13,14 +13,14 @@ export class WebpHistoryBackend implements HistoryBackend<WebpHistorySnapshot> {
   }
 
   apply(target: HistoryTarget, snapshot: WebpHistorySnapshot): void {
-    const raw = decodeWebp(snapshot.webp);
+    const raw = decodeWebp(snapshot.webp, snapshot.size.width, snapshot.size.height);
     const current = target.readPixels(snapshot.bounds);
     target.writePixels(snapshot.bounds, toUint8Array(raw));
     snapshot.webp = encodeWebp(current, snapshot.size.width, snapshot.size.height);
   }
 
   exportRaw(_target: HistoryTarget, snapshot: WebpHistorySnapshot): HistoryRawSnapshot {
-    const buffer = decodeWebp(snapshot.webp);
+    const buffer = decodeWebp(snapshot.webp, snapshot.size.width, snapshot.size.height);
     return { bounds: snapshot.bounds, size: snapshot.size, buffer: toUint8Array(buffer) };
   }
 
