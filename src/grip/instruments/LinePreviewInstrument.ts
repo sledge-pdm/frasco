@@ -27,7 +27,7 @@ export class LinePreviewInstrument implements GripInstrument {
 
   addPoint(layer: Layer, kernel: GripKernel, point: GripPoint): void {
     if (!this.startPoint) return;
-    const nextBounds = kernel.getSegmentBounds(layer, this.startPoint, point);
+    const nextBounds = kernel.getComputedSegmentBounds(layer, this.startPoint, point);
     const prevBounds = this.lastBounds;
     this.clearMask(nextBounds);
     const drawnBounds = kernel.stampMaskSegment(this.mask as MaskSurface, layer, this.startPoint, point);
@@ -38,7 +38,7 @@ export class LinePreviewInstrument implements GripInstrument {
 
   end(layer: Layer, kernel: GripKernel, point: GripPoint): void {
     if (this.startPoint) {
-      const nextBounds = kernel.getSegmentBounds(layer, this.startPoint, point);
+      const nextBounds = kernel.getComputedSegmentBounds(layer, this.startPoint, point);
       const prevBounds = this.lastBounds;
       this.clearMask(nextBounds);
       const drawnBounds = kernel.stampMaskSegment(this.mask as MaskSurface, layer, this.startPoint, point);

@@ -1,4 +1,4 @@
-import type { GripPoint } from '../grip/types';
+import type { GripPoint, GripStrokeStyle } from '../grip/types';
 import type { Layer } from '../layer';
 import type { MaskSurface, SurfaceBounds } from '../surface/types';
 
@@ -42,16 +42,22 @@ export interface GripKernel {
   stampMaskSegment(mask: MaskSurface, layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined;
 
   /**
-   * Compute bounds for a point stamp.
+   * Get bounds for a point stamp (no clip).
+   * @param style Stroke style.
+   */
+  getPointBounds(style: GripStrokeStyle): SurfaceBounds;
+
+  /**
+   * Compute bounds for a point stamp (clamped by layer bounds).
    * @param layer Layer for size/bounds reference.
    * @param point Current stroke point (style included).
    */
-  getPointBounds(layer: Layer, point: GripPoint): SurfaceBounds | undefined;
+  getComputedPointBounds(layer: Layer, point: GripPoint): SurfaceBounds | undefined;
   /**
-   * Compute bounds for a segment stamp.
+   * Compute bounds for a segment stamp (clamped by layer bounds).
    * @param layer Layer for size/bounds reference.
    * @param from Previous point.
    * @param to Current point.
    */
-  getSegmentBounds(layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined;
+  getComputedSegmentBounds(layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined;
 }

@@ -1,4 +1,4 @@
-import type { GripColor, GripPoint } from '../../../grip/types';
+import type { GripColor, GripPoint, GripStrokeStyle } from '../../../grip/types';
 import type { Layer } from '../../../layer';
 import type { MaskSurface, SurfaceBounds } from '../../../surface/types';
 import type { GripKernel } from '../../Kernel';
@@ -93,7 +93,14 @@ export class SquareKernel implements GripKernel {
     return bounds;
   }
 
-  getPointBounds(layer: Layer, point: GripPoint): SurfaceBounds | undefined {
+  getPointBounds(style: GripStrokeStyle): SurfaceBounds {
+    const size = style.size;
+    const width = size + 2;
+    const height = size + 2;
+    return { x: 0, y: 0, width, height };
+  }
+
+  getComputedPointBounds(layer: Layer, point: GripPoint): SurfaceBounds | undefined {
     const half = squareHalf(point.style.size);
     if (half < 0) return;
     const centerX = snapSquareCenter(point.x, point.style.size);
@@ -101,7 +108,7 @@ export class SquareKernel implements GripKernel {
     return makePointBounds(layer, centerX, centerY, half);
   }
 
-  getSegmentBounds(layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined {
+  getComputedSegmentBounds(layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined {
     const half = squareHalf(to.style.size);
     if (half < 0) return;
     const fromX = snapSquareCenter(from.x, to.style.size);

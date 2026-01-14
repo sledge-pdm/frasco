@@ -6,4 +6,6 @@ export { MaskStrokeInstrument } from './instruments/MaskStrokeInstrument';
 export type { GripKernel } from './Kernel';
 export { CircleKernel } from './kernels/circle/CircleKernel';
 export { SquareKernel } from './kernels/square/SquareKernel';
+export { BitmaskFactory } from './mask/BitmaskFactory';
+export type { BitmaskShape } from './mask/BitmaskFactory';
 export type { GripColor, GripPoint, GripStrokeStyle } from './types';

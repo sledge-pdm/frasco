@@ -15,21 +15,21 @@
 - [x] write `grip` interfaces
 - [x] write minimum brush shape (solid circle, linear completion, & no pressure censoring)
 - [x] write unit tests
-- [ ] write e2e tests (! should write in every grip shapes but delayed bc of laziness. verify sets are much easier to make when came to integration with sledge...)
+- [x] write e2e tests
 
 ### P3
 
 - [x] write effects
 - [x] write history system
 - [x] write unit tests
-- [ ] write e2e tests (! too lazy)
+- [x] write e2e tests (! too lazy)
 
 ### P4
 
 - [x] determine/write minimum `frasco` interfaces (_according to sledge implementation_)
 - [x] write `frasco` interfaces
 - [x] write unit tests
-- [ ] write e2e tests (! too lazy)
+- [x] write e2e tests
 
 ### P5
 
