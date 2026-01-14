@@ -47,10 +47,10 @@ export class BitmaskFactory {
       style,
     });
 
-    const raw = this.layer.readTexturePixels(this.mask.getTextureHandle(), { width, height });
+    const raw = this.mask.readPixels();
     const mask = new Uint8Array(width * height);
-    for (let i = 0, j = 0; i < raw.length; i += 4, j++) {
-      mask[j] = raw[i] ? 1 : 0;
+    for (let i = 0; i < raw.length; i++) {
+      mask[i] = raw[i] ? 1 : 0;
     }
 
     return {

@@ -69,14 +69,24 @@ export class MaskSurfaceImpl implements MaskSurface {
 
   replaceBuffer(buffer: Uint8Array | Uint8ClampedArray): void {
     this.assertNotDisposed();
-    const expected = this.size.width * this.size.height * 4;
+    const expected = this.size.width * this.size.height;
     if (buffer.length !== expected) {
       throw new Error(`MaskSurface.replaceBuffer: buffer length ${buffer.length} !== expected ${expected}`);
     }
     const { gl } = this;
     gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RED, gl.UNSIGNED_BYTE, buffer);
+  }
+
+  readPixels(): Uint8Array {
+    this.assertNotDisposed();
+    const { gl } = this;
+    this.bindFramebuffer(this.textures.front);
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    const out = new Uint8Array(this.size.width * this.size.height);
+    gl.readPixels(0, 0, this.size.width, this.size.height, gl.RED, gl.UNSIGNED_BYTE, out);
+    return out;
   }
 
   applyEffect(effect: MaskSurfaceEffect, options?: MaskSurfaceApplyOptions): void {
@@ -201,7 +211,7 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, width, height, 0, gl.RED, gl.UNSIGNED_BYTE, null);
     return tex;
   }
 
