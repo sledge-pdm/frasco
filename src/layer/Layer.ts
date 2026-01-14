@@ -79,6 +79,11 @@ export class Layer implements HistoryTarget {
     return tex;
   }
 
+  createEmptyTexture(): WebGLTexture {
+    this.assertNotDisposed();
+    return this.createTexture(this.size.width, this.size.height);
+  }
+
   deleteTexture(texture: WebGLTexture): void {
     this.assertNotDisposed();
     this.gl.deleteTexture(texture);
@@ -258,6 +263,14 @@ export class Layer implements HistoryTarget {
     return tex;
   }
 
+  copyTextureRegion(texture: WebGLTexture, bounds: SurfaceBounds): void {
+    this.assertNotDisposed();
+    const { gl } = this;
+    this.bindFramebuffer(this.textures.front);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.x, bounds.y, bounds.width, bounds.height);
+  }
+
   drawTexture(bounds: SurfaceBounds, texture: WebGLTexture): void {
     this.assertNotDisposed();
     const { gl } = this;
@@ -399,7 +412,7 @@ export class Layer implements HistoryTarget {
     const program = this.getOrCreateProgram(fragmentSrc, fragmentSrc);
 
     if (bounds) {
-      this.copyFrontToBack();
+      this.copyTextureBounds(this.textures.front, this.textures.back, bounds);
     }
     this.bindFramebuffer(this.textures.back);
     gl.viewport(0, 0, this.size.width, this.size.height);
@@ -450,7 +463,11 @@ export class Layer implements HistoryTarget {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindVertexArray(null);
     gl.useProgram(null);
-    if (bounds) gl.disable(gl.SCISSOR_TEST);
+    if (bounds) {
+      gl.disable(gl.SCISSOR_TEST);
+      this.copyTextureBounds(this.textures.back, this.textures.front, bounds);
+      return;
+    }
 
     this.swapTextures();
   }
@@ -488,6 +505,13 @@ export class Layer implements HistoryTarget {
     this.bindFramebuffer(this.textures.front);
     gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, this.size.width, this.size.height);
+  }
+
+  private copyTextureBounds(src: WebGLTexture, dst: WebGLTexture, bounds: SurfaceBounds): void {
+    const { gl } = this;
+    this.bindFramebuffer(src);
+    gl.bindTexture(gl.TEXTURE_2D, dst);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
   private getOrCreateProgram(key: string, fragmentSrc: string): WebGLProgram {

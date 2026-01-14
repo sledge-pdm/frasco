@@ -67,7 +67,7 @@ export class LinePreviewInstrument implements GripInstrument {
     if (this.baseTexture) {
       layer.deleteTexture(this.baseTexture);
     }
-    this.baseTexture = layer.createTextureCopy();
+    this.baseTexture = layer.createEmptyTexture();
   }
 
   private endStroke(layer: Layer): void {
@@ -83,6 +83,7 @@ export class LinePreviewInstrument implements GripInstrument {
 
   private merge(layer: Layer, style: GripStrokeStyle, bounds?: SurfaceBounds): void {
     if (!this.baseTexture || !this.mask || !bounds) return;
+    layer.copyTextureRegion(this.baseTexture, bounds);
     const color = normalizeColor(style.color);
     const opacity = style.opacity ?? 1;
 

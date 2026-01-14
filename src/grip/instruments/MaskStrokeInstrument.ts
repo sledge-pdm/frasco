@@ -14,23 +14,27 @@ export class MaskStrokeInstrument implements GripInstrument {
   private mask: MaskSurface | undefined;
   private baseTexture: WebGLTexture | undefined;
   private baseSize: Size | undefined;
+  private baseCopiedBounds: SurfaceBounds | undefined;
   private strokeBounds: SurfaceBounds | undefined;
 
   start(layer: Layer, kernel: GripKernel, point: GripPoint): void {
     this.beginStroke(layer);
     this.updateStrokeBounds(kernel.stampMaskPoint(this.mask as MaskSurface, layer, point));
+    this.copyBaseIfNeeded(layer, this.strokeBounds);
     this.merge(layer, point.style);
   }
 
   addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint): void {
     this.updateStrokeBounds(kernel.stampMaskSegment(this.mask as MaskSurface, layer, prev, point));
     this.updateStrokeBounds(kernel.stampMaskPoint(this.mask as MaskSurface, layer, point));
+    this.copyBaseIfNeeded(layer, this.strokeBounds);
     this.merge(layer, point.style);
   }
 
   end(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint): void {
     this.updateStrokeBounds(kernel.stampMaskSegment(this.mask as MaskSurface, layer, prev, point));
     this.updateStrokeBounds(kernel.stampMaskPoint(this.mask as MaskSurface, layer, point));
+    this.copyBaseIfNeeded(layer, this.strokeBounds);
     this.merge(layer, point.style);
     if (this.baseTexture && this.strokeBounds) {
       layer.commitHistoryFromTexture(this.baseTexture, this.strokeBounds);
@@ -48,11 +52,12 @@ export class MaskStrokeInstrument implements GripInstrument {
     this.mask = this.mask ?? layer.createMaskSurface(size);
     this.mask.clear(0);
     this.strokeBounds = undefined;
+    this.baseCopiedBounds = undefined;
 
     if (this.baseTexture) {
       layer.deleteTexture(this.baseTexture);
     }
-    this.baseTexture = layer.createTextureCopy();
+    this.baseTexture = layer.createEmptyTexture();
   }
 
   private endStroke(layer: Layer): void {
@@ -63,6 +68,7 @@ export class MaskStrokeInstrument implements GripInstrument {
     if (this.mask) {
       this.mask.clear(0);
     }
+    this.baseCopiedBounds = undefined;
   }
 
   private merge(layer: Layer, style: GripStrokeStyle): void {
@@ -110,6 +116,56 @@ export class MaskStrokeInstrument implements GripInstrument {
       width: maxX - minX + 1,
       height: maxY - minY + 1,
     };
+  }
+
+  private copyBaseIfNeeded(layer: Layer, bounds: SurfaceBounds | undefined): void {
+    if (!this.baseTexture || !bounds) return;
+    if (!this.baseCopiedBounds) {
+      layer.copyTextureRegion(this.baseTexture, bounds);
+      this.baseCopiedBounds = { ...bounds };
+      return;
+    }
+
+    const prev = this.baseCopiedBounds;
+    const next = bounds;
+    const nextX1 = next.x + next.width;
+    const nextY1 = next.y + next.height;
+    const prevX1 = prev.x + prev.width;
+    const prevY1 = prev.y + prev.height;
+    const containsPrev = next.x <= prev.x && next.y <= prev.y && nextX1 >= prevX1 && nextY1 >= prevY1;
+
+    if (!containsPrev) {
+      layer.copyTextureRegion(this.baseTexture, next);
+      this.baseCopiedBounds = { ...next };
+      return;
+    }
+
+    const regions: SurfaceBounds[] = [];
+
+    if (next.y < prev.y) {
+      regions.push({ x: next.x, y: next.y, width: next.width, height: prev.y - next.y });
+    }
+    if (nextY1 > prevY1) {
+      regions.push({ x: next.x, y: prevY1, width: next.width, height: nextY1 - prevY1 });
+    }
+
+    const overlapY0 = Math.max(next.y, prev.y);
+    const overlapY1 = Math.min(nextY1, prevY1);
+    if (overlapY1 > overlapY0) {
+      if (next.x < prev.x) {
+        regions.push({ x: next.x, y: overlapY0, width: prev.x - next.x, height: overlapY1 - overlapY0 });
+      }
+      if (nextX1 > prevX1) {
+        regions.push({ x: prevX1, y: overlapY0, width: nextX1 - prevX1, height: overlapY1 - overlapY0 });
+      }
+    }
+
+    for (const region of regions) {
+      if (region.width <= 0 || region.height <= 0) continue;
+      layer.copyTextureRegion(this.baseTexture, region);
+    }
+
+    this.baseCopiedBounds = { ...next };
   }
 }
 

@@ -133,7 +133,7 @@ export class MaskSurfaceImpl implements MaskSurface {
     const bounds = options?.bounds;
 
     if (bounds) {
-      this.copyFrontToBack();
+      this.copyTextureBounds(this.textures.front, this.textures.back, bounds);
     }
     this.bindFramebuffer(this.textures.back);
     gl.viewport(0, 0, this.size.width, this.size.height);
@@ -175,7 +175,11 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindVertexArray(null);
     gl.useProgram(null);
-    if (bounds) gl.disable(gl.SCISSOR_TEST);
+    if (bounds) {
+      gl.disable(gl.SCISSOR_TEST);
+      this.copyTextureBounds(this.textures.back, this.textures.front, bounds);
+      return;
+    }
 
     this.swapTextures();
   }
@@ -197,6 +201,13 @@ export class MaskSurfaceImpl implements MaskSurface {
     this.bindFramebuffer(this.textures.front);
     gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, this.size.width, this.size.height);
+  }
+
+  private copyTextureBounds(src: WebGLTexture, dst: WebGLTexture, bounds: SurfaceBounds): void {
+    const { gl } = this;
+    this.bindFramebuffer(src);
+    gl.bindTexture(gl.TEXTURE_2D, dst);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
   private createTexture(width: number, height: number): WebGLTexture {
