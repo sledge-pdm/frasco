@@ -1,6 +1,6 @@
 {
   "name": "@sledge-pdm/frasco",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "WebGL Texture processing package for sledge",
   "author": "innsbluck",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "format": "pnpm prettier"
   },
   "dependencies": {
-    "@sledge-pdm/core": "^1.1.0"
+    "@sledge-pdm/core": "^1.1.3"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "^4.0.16",
