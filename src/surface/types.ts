@@ -23,6 +23,7 @@ export interface MaskSurface {
   getTextureHandle(): WebGLTexture;
   clear(value?: number): void;
   replaceBuffer(buffer: Uint8Array | Uint8ClampedArray): void;
+  readPixels(): Uint8Array;
   applyEffect(effect: MaskSurfaceEffect, options?: MaskSurfaceApplyOptions): void;
   dispose(): void;
 }

@@ -1,6 +1,6 @@
 import { FULLSCREEN_VERT_300ES } from '../layer/shaders';
 import type { LayerEffectUniformValue, Size } from '../layer/types';
-import type { MaskSurface, MaskSurfaceApplyOptions, MaskSurfaceEffect } from './types';
+import type { MaskSurface, MaskSurfaceApplyOptions, MaskSurfaceEffect, SurfaceBounds } from './types';
 
 type TexturePair = {
   front: WebGLTexture;
@@ -69,14 +69,24 @@ export class MaskSurfaceImpl implements MaskSurface {
 
   replaceBuffer(buffer: Uint8Array | Uint8ClampedArray): void {
     this.assertNotDisposed();
-    const expected = this.size.width * this.size.height * 4;
+    const expected = this.size.width * this.size.height;
     if (buffer.length !== expected) {
       throw new Error(`MaskSurface.replaceBuffer: buffer length ${buffer.length} !== expected ${expected}`);
     }
     const { gl } = this;
     gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RED, gl.UNSIGNED_BYTE, buffer);
+  }
+
+  readPixels(): Uint8Array {
+    this.assertNotDisposed();
+    const { gl } = this;
+    this.bindFramebuffer(this.textures.front);
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    const out = new Uint8Array(this.size.width * this.size.height);
+    gl.readPixels(0, 0, this.size.width, this.size.height, gl.RED, gl.UNSIGNED_BYTE, out);
+    return out;
   }
 
   applyEffect(effect: MaskSurfaceEffect, options?: MaskSurfaceApplyOptions): void {
@@ -123,7 +133,7 @@ export class MaskSurfaceImpl implements MaskSurface {
     const bounds = options?.bounds;
 
     if (bounds) {
-      this.copyFrontToBack();
+      this.copyTextureBounds(this.textures.front, this.textures.back, bounds);
     }
     this.bindFramebuffer(this.textures.back);
     gl.viewport(0, 0, this.size.width, this.size.height);
@@ -165,7 +175,11 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindVertexArray(null);
     gl.useProgram(null);
-    if (bounds) gl.disable(gl.SCISSOR_TEST);
+    if (bounds) {
+      gl.disable(gl.SCISSOR_TEST);
+      this.copyTextureBounds(this.textures.back, this.textures.front, bounds);
+      return;
+    }
 
     this.swapTextures();
   }
@@ -189,6 +203,13 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, this.size.width, this.size.height);
   }
 
+  private copyTextureBounds(src: WebGLTexture, dst: WebGLTexture, bounds: SurfaceBounds): void {
+    const { gl } = this;
+    this.bindFramebuffer(src);
+    gl.bindTexture(gl.TEXTURE_2D, dst);
+    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.x, bounds.y, bounds.width, bounds.height);
+  }
+
   private createTexture(width: number, height: number): WebGLTexture {
     const { gl } = this;
     const tex = gl.createTexture();
@@ -201,7 +222,7 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, width, height, 0, gl.RED, gl.UNSIGNED_BYTE, null);
     return tex;
   }
 
