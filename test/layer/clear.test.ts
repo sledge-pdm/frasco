@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+﻿import { describe, it } from 'vitest';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
@@ -10,10 +10,11 @@ describe('Layer.clear', () => {
 
     layer.clear([255, 0, 0, 255]);
 
-    const raw = layer.exportRaw();
+    const raw = layer.readPixels();
     const expected = new Uint8Array([255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255]);
     expectBufferEqual(raw, expected);
 
     layer.dispose();
   });
 });
+

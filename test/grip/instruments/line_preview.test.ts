@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+﻿import { describe, it } from 'vitest';
 import { CircleKernel, GripPoint, LinePreviewInstrument } from '../../../src/grip';
 import { Layer } from '../../../src/layer';
 import { expectBufferEqual } from '../../support/assert';
@@ -28,7 +28,7 @@ function makeLayer(width: number, height: number): Layer {
 function renderSegment(kernel: CircleKernel, from: GripPoint, to: GripPoint, width: number, height: number): Uint8Array {
   const layer = makeLayer(width, height);
   kernel.drawSegment(layer, from, to);
-  const out = layer.exportRaw();
+  const out = layer.readPixels();
   layer.dispose();
   return out;
 }
@@ -45,13 +45,14 @@ describe('LinePreviewInstrument', () => {
 
     instrument.start(layer, kernel, start);
     instrument.addPoint(layer, kernel, mid);
-    expectBufferEqual(layer.exportRaw(), renderSegment(kernel, start, mid, 9, 9));
+    expectBufferEqual(layer.readPixels(), renderSegment(kernel, start, mid, 9, 9));
 
     instrument.addPoint(layer, kernel, end);
-    expectBufferEqual(layer.exportRaw(), renderSegment(kernel, start, end, 9, 9));
+    expectBufferEqual(layer.readPixels(), renderSegment(kernel, start, end, 9, 9));
 
     instrument.end(layer, kernel, end);
-    expectBufferEqual(layer.exportRaw(), renderSegment(kernel, start, end, 9, 9));
+    expectBufferEqual(layer.readPixels(), renderSegment(kernel, start, end, 9, 9));
     layer.dispose();
   });
 });
+

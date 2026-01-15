@@ -1,4 +1,4 @@
-# strategy
+﻿# strategy
 
 ## Phases
 
@@ -78,4 +78,5 @@
 - `Grip` with `inputSpace: 'canvas'` flips Y once to map into `layer` (GL space).
 - `layer` always stores textures in GL space (origin at bottom-left).
 - `Frasco.compose` defaults to no flip (GL -> WebGL canvas is 1:1).
-- If you need 2D canvas / image output, flip Y at output (`Layer.exportRaw({ flipY: true })` or `Frasco.compose({ flipY: true })`).
+- If you need 2D canvas / image output, flip Y at output (`Layer.readPixels({ flipY: true })` or `Frasco.compose({ flipY: true })`).
+

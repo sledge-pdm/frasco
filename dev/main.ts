@@ -1,4 +1,4 @@
-import {
+﻿import {
   CircleKernel,
   COPY_FRAG_300ES,
   DeflateHistoryBackend,
@@ -174,7 +174,7 @@ function resizeCanvas(): void {
   if (canvas.width === width && canvas.height === height) return;
   canvas.width = width;
   canvas.height = height;
-  layer.resize(width, height);
+  layer.resizeClear(width, height);
 }
 
 function clearLayer(): void {
@@ -312,7 +312,7 @@ downloadPngButton?.addEventListener('click', () => {
 });
 
 function downloadPng() {
-  const buffer = layer.exportRaw({ flipY: true });
+  const buffer = layer.readPixels({ flipY: true });
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -359,3 +359,4 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
     }
   }
 });
+

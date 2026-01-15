@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+﻿import { describe, it } from 'vitest';
 import { InvertEffect } from '../../src/effects';
 import { Layer } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
@@ -25,13 +25,14 @@ describe('History (effects integration)', () => {
 
       InvertEffect.apply(layer);
 
-      expectBufferEqual(layer.exportRaw(), expected.data);
+      expectBufferEqual(layer.readPixels(), expected.data);
       layer.undo();
-      expectBufferEqual(layer.exportRaw(), original.data);
+      expectBufferEqual(layer.readPixels(), original.data);
       layer.redo();
-      expectBufferEqual(layer.exportRaw(), expected.data);
+      expectBufferEqual(layer.readPixels(), expected.data);
 
       layer.dispose();
     });
   }
 });
+

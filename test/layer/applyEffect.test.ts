@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { COPY_FRAG_300ES, Layer, SOLID_FRAG_300ES } from '../../src/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
@@ -12,7 +12,7 @@ describe('Layer.applyEffect', () => {
 
     layer.applyEffect({ fragmentSrc: COPY_FRAG_300ES });
 
-    const out = layer.exportRaw();
+    const out = layer.readPixels();
     expectBufferEqual(out, input);
     layer.dispose();
   });
@@ -26,7 +26,7 @@ describe('Layer.applyEffect', () => {
       uniforms: { u_color: [0, 1, 0, 1] },
     });
 
-    const out = layer.exportRaw();
+    const out = layer.readPixels();
     const expected = new Uint8Array([0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255]);
     expectBufferEqual(out, expected);
 
@@ -47,3 +47,4 @@ describe('Layer.applyEffect', () => {
     layer.dispose();
   });
 });
+

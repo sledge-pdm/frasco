@@ -30,12 +30,12 @@ export type WebpHistorySnapshot = {
 
 export interface HistoryTarget {
   getSize(): Size;
-  readPixels(bounds: SurfaceBounds): Uint8Array;
-  writePixels(bounds: SurfaceBounds, buffer: Uint8Array): void;
-  copyTexture(bounds: SurfaceBounds): WebGLTexture;
+  readPixels(bounds?: SurfaceBounds): Uint8Array;
+  writePixels(buffer: Uint8Array, bounds?: SurfaceBounds): void;
+  copyTexture(bounds?: SurfaceBounds): WebGLTexture;
   drawTexture(bounds: SurfaceBounds, texture: WebGLTexture): void;
   createTextureFromRaw(buffer: Uint8Array, size: Size): WebGLTexture;
-  readTexturePixels(texture: WebGLTexture, size: Size): Uint8Array;
+  readTexturePixels(texture: WebGLTexture, bounds?: SurfaceBounds): Uint8Array;
   deleteTexture(texture: WebGLTexture): void;
 }
 

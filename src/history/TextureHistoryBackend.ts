@@ -18,7 +18,12 @@ export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnaps
   }
 
   exportRaw(target: HistoryTarget, snapshot: TextureHistorySnapshot): HistoryRawSnapshot {
-    const buffer = target.readTexturePixels(snapshot.texture, snapshot.size);
+    const buffer = target.readTexturePixels(snapshot.texture, {
+      x: 0,
+      y: 0,
+      width: snapshot.size.width,
+      height: snapshot.size.height,
+    });
     return { bounds: snapshot.bounds, size: snapshot.size, buffer };
   }
 

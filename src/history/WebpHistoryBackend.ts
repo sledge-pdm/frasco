@@ -18,7 +18,7 @@ export class WebpHistoryBackend implements HistoryBackend<WebpHistorySnapshot> {
   apply(target: HistoryTarget, snapshot: WebpHistorySnapshot): void {
     const raw = decodeWebp(snapshot.webp, snapshot.size.width, snapshot.size.height);
     const current = target.readPixels(snapshot.bounds);
-    target.writePixels(snapshot.bounds, toUint8Array(raw));
+    target.writePixels(toUint8Array(raw), snapshot.bounds);
     snapshot.webp = encodeWebp(current, snapshot.size.width, snapshot.size.height);
   }
 

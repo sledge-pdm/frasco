@@ -32,7 +32,7 @@ describe('Effects (e2e)', () => {
   }
 
   function verify(layer: Layer, expected: E2EImage) {
-    const out = layer.exportRaw();
+    const out = layer.readPixels();
     expectBufferEqual(out, expected.data);
 
     layer.dispose();
@@ -92,3 +92,4 @@ describe('Effects (e2e)', () => {
     verify(layer, expected);
   });
 });
+

@@ -15,7 +15,7 @@ export class DeflateHistoryBackend implements HistoryBackend<DeflateHistorySnaps
   apply(target: HistoryTarget, snapshot: DeflateHistorySnapshot): void {
     const raw = gzipInflate(snapshot.deflated);
     const current = target.readPixels(snapshot.bounds);
-    target.writePixels(snapshot.bounds, raw);
+    target.writePixels(raw, snapshot.bounds);
     snapshot.deflated = gzipDeflate(current);
   }
 

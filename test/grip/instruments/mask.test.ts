@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { GripPoint, MaskStrokeInstrument, SquareKernel } from '../../../src/grip';
 import { Layer } from '../../../src/layer';
 import { expectBufferEqual } from '../../support/assert';
@@ -62,7 +62,7 @@ describe('MaskStrokeInstrument', () => {
     const layerDirect = makeLayer(10, 10);
     drawStrokeDirect(layerDirect, kernel, points);
 
-    expectBufferEqual(layerMask.exportRaw(), layerDirect.exportRaw());
+    expectBufferEqual(layerMask.readPixels(), layerDirect.readPixels());
     layerMask.dispose();
     layerDirect.dispose();
   });
@@ -77,8 +77,8 @@ describe('MaskStrokeInstrument', () => {
     const layerDirect = makeLayer(10, 10);
     drawStrokeDirect(layerDirect, kernel, points);
 
-    const maskOut = layerMask.exportRaw();
-    const directOut = layerDirect.exportRaw();
+    const maskOut = layerMask.readPixels();
+    const directOut = layerDirect.readPixels();
 
     let hasMask = false;
     let hasAccumulation = false;
@@ -98,3 +98,4 @@ describe('MaskStrokeInstrument', () => {
     layerDirect.dispose();
   });
 });
+

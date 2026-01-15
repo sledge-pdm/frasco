@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+﻿import { describe, it } from 'vitest';
 import { CircleKernel } from '../../../../src/grip';
 import { Layer } from '../../../../src/layer';
 import { expectBufferEqual } from '../../../support/assert';
@@ -18,7 +18,7 @@ async function runStampTest(url: URL) {
   const kernel = new CircleKernel();
   kernel.drawPoint(layer, makePoint(pos, pos, size));
 
-  const out = layer.exportRaw();
+  const out = layer.readPixels();
   expectBufferEqual(out, expected.data);
   layer.dispose();
 }
@@ -40,3 +40,4 @@ describe('CircleKernel stamp', () => {
     });
   }
 });
+

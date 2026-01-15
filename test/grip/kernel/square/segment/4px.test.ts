@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+﻿import { describe, it } from 'vitest';
 import { SquareKernel } from '../../../../../src/grip';
 import { Layer } from '../../../../../src/layer';
 import { expectBufferEqual } from '../../../../support/assert';
@@ -34,7 +34,7 @@ async function runStampTest(url: URL, type: SegmentType) {
       break;
   }
 
-  const out = layer.exportRaw();
+  const out = layer.readPixels();
   expectBufferEqual(out, expected.data);
   layer.dispose();
 }
@@ -52,3 +52,4 @@ describe('SquareKernel stamp 4px', () => {
     });
   }
 });
+
