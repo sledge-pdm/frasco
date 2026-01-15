@@ -1,4 +1,4 @@
-import type { LayerEffectUniformValue, Size } from '../layer/types';
+import type { LayerEffectUniformValue, LayerTextureHandle, Size } from '../layer/types';
 
 export type SurfaceBounds = {
   x: number;
@@ -20,7 +20,7 @@ export interface MaskSurface {
   getWidth(): number;
   getHeight(): number;
   getSize(): Size;
-  getTextureHandle(): WebGLTexture;
+  getTextureHandle(): LayerTextureHandle;
   clear(value?: number): void;
   replaceBuffer(buffer: Uint8Array | Uint8ClampedArray): void;
   readPixels(): Uint8Array;

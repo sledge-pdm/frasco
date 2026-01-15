@@ -1,3 +1,5 @@
+import type { LayerTextureHandle } from '../../src/layer/types';
+
 export function makeGL2Context(width: number, height: number): WebGL2RenderingContext {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -20,7 +22,13 @@ export function createTexture(gl: WebGL2RenderingContext, width: number, height:
   return tex;
 }
 
-export function readTexturePixels(gl: WebGL2RenderingContext, texture: WebGLTexture, width: number, height: number): Uint8Array {
+export function readTexturePixels(gl: WebGL2RenderingContext, texture: LayerTextureHandle, width: number, height: number): Uint8Array {
+  if (typeof texture === 'object' && texture && 'kind' in texture) {
+    if (texture.textures.length !== 1) {
+      throw new Error('readTexturePixels: tiled texture set is not supported in tests');
+    }
+    return readTexturePixels(gl, texture.textures[0], width, height);
+  }
   const fbo = gl.createFramebuffer();
   if (!fbo) throw new Error('WebGL: failed to create framebuffer');
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);

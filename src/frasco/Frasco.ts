@@ -101,6 +101,10 @@ export class Frasco {
 
     const target = options?.target ?? null;
     const flipY = options?.flipY ?? false;
+    const viewport = options?.viewport;
+    if (!target && viewport) {
+      gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+    }
     if (target && target === front) return;
     this.drawCopy(front, target, flipY);
   }

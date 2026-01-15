@@ -1,4 +1,4 @@
-import type { Size } from '../layer/types';
+import type { LayerTextureHandle, Size } from '../layer/types';
 import type { SurfaceBounds } from '../surface/types';
 
 export type HistoryRawSnapshot = {
@@ -16,7 +16,7 @@ export type DeflateHistorySnapshot = {
 export type TextureHistorySnapshot = {
   bounds: SurfaceBounds;
   size: Size;
-  texture: WebGLTexture;
+  texture: LayerTextureHandle;
 };
 
 /**
@@ -32,11 +32,11 @@ export interface HistoryTarget {
   getSize(): Size;
   readPixels(bounds: SurfaceBounds): Uint8Array;
   writePixels(bounds: SurfaceBounds, buffer: Uint8Array): void;
-  copyTexture(bounds: SurfaceBounds): WebGLTexture;
-  drawTexture(bounds: SurfaceBounds, texture: WebGLTexture): void;
-  createTextureFromRaw(buffer: Uint8Array, size: Size): WebGLTexture;
-  readTexturePixels(texture: WebGLTexture, size: Size): Uint8Array;
-  deleteTexture(texture: WebGLTexture): void;
+  copyTexture(bounds: SurfaceBounds): LayerTextureHandle;
+  drawTexture(bounds: SurfaceBounds, texture: LayerTextureHandle): void;
+  createTextureFromRaw(buffer: Uint8Array, size: Size): LayerTextureHandle;
+  readTexturePixels(texture: LayerTextureHandle, size: Size): Uint8Array;
+  deleteTexture(texture: LayerTextureHandle): void;
 }
 
 export interface HistoryBackend<TSnapshot> {

@@ -36,6 +36,7 @@ export type ComposeOptions = {
   target?: WebGLTexture;
   baseColor?: RgbaFloat;
   flipY?: boolean;
+  viewport?: { x: number; y: number; width: number; height: number };
 };
 
 export type FrascoOptions = {

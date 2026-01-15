@@ -9,10 +9,12 @@ uniform vec2 u_center;
 uniform float u_half;
 uniform vec4 u_color;
 uniform float u_opacity;
+uniform vec2 u_origin;
 
 void main() {
   vec4 src = texture(u_src, v_uv);
-  vec2 d = abs(gl_FragCoord.xy - u_center);
+  vec2 coord = gl_FragCoord.xy + u_origin;
+  vec2 d = abs(coord - u_center);
   float inside = step(max(d.x, d.y), u_half);
   float t = clamp(u_opacity, 0.0, 1.0) * inside;
   outColor = mix(src, u_color, t);

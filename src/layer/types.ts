@@ -11,6 +11,7 @@ export type RgbaFloat = readonly [number, number, number, number];
 
 export type LayerInit = Size & {
   data?: RawPixelData;
+  tileSize?: number;
 };
 
 export type LayerExportOptions = {
@@ -23,3 +24,21 @@ export type LayerEffect = {
   fragmentSrc: string;
   uniforms?: Record<string, LayerEffectUniformValue>;
 };
+
+export type LayerTileInfo = {
+  index: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type TileTextureSet = {
+  kind: 'tiles';
+  textures: WebGLTexture[];
+  tileSize: Size;
+  tileCountX: number;
+  tileCountY: number;
+};
+
+export type LayerTextureHandle = WebGLTexture | TileTextureSet;

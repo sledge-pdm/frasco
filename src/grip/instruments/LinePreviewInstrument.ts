@@ -1,6 +1,6 @@
 import type { GripPoint, GripStrokeStyle } from '../../grip/types';
 import type { Layer } from '../../layer';
-import type { Size } from '../../layer/types';
+import type { LayerTextureHandle, Size } from '../../layer/types';
 import type { MaskSurface, SurfaceBounds } from '../../surface/types';
 import type { GripInstrument } from '../Instrument';
 import type { GripKernel } from '../Kernel';
@@ -12,7 +12,7 @@ import { MASK_MERGE_300ES } from '../shaders/mask_merge';
 export class LinePreviewInstrument implements GripInstrument {
   readonly id = 'line-preview';
   private mask: MaskSurface | undefined;
-  private baseTexture: WebGLTexture | undefined;
+  private baseTexture: LayerTextureHandle | undefined;
   private baseSize: Size | undefined;
   private baseCopiedBounds: SurfaceBounds | undefined;
   private startPoint: GripPoint | undefined;

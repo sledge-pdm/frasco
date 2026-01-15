@@ -1,5 +1,5 @@
 import { FULLSCREEN_VERT_300ES } from '../layer/shaders';
-import type { LayerEffectUniformValue, Size } from '../layer/types';
+import type { LayerEffectUniformValue, LayerTextureHandle, Size } from '../layer/types';
 import type { MaskSurface, MaskSurfaceApplyOptions, MaskSurfaceEffect, SurfaceBounds } from './types';
 
 type TexturePair = {
@@ -7,19 +7,36 @@ type TexturePair = {
   back: WebGLTexture;
 };
 
+type TileState = {
+  index: number;
+  originX: number;
+  originY: number;
+  width: number;
+  height: number;
+  textures: TexturePair;
+};
+
 export class MaskSurfaceImpl implements MaskSurface {
   private readonly gl: WebGL2RenderingContext;
   private readonly size: Size;
-  private textures: TexturePair;
+  private readonly tileSize: Size;
+  private readonly tileCountX: number;
+  private readonly tileCountY: number;
+  private tiles: TileState[];
   private readonly fbo: WebGLFramebuffer;
   private readonly vao: WebGLVertexArrayObject;
   private readonly vbo: WebGLBuffer;
   private readonly programs: Map<string, WebGLProgram> = new Map();
   private disposed = false;
 
-  constructor(gl: WebGL2RenderingContext, size: Size) {
+  constructor(gl: WebGL2RenderingContext, size: Size, options?: { tileSize?: number }) {
     this.gl = gl;
     this.size = { width: size.width, height: size.height };
+    const resolvedTileSize = Math.max(1, Math.floor(options?.tileSize ?? Math.max(size.width, size.height)));
+    this.tileSize = { width: resolvedTileSize, height: resolvedTileSize };
+    this.tileCountX = Math.ceil(this.size.width / resolvedTileSize);
+    this.tileCountY = Math.ceil(this.size.height / resolvedTileSize);
+    this.tiles = [];
 
     const fbo = gl.createFramebuffer();
     if (!fbo) throw new Error('MaskSurface: failed to create framebuffer');
@@ -35,10 +52,7 @@ export class MaskSurfaceImpl implements MaskSurface {
 
     this.initFullscreenQuad();
 
-    this.textures = {
-      front: this.createTexture(this.size.width, this.size.height),
-      back: this.createTexture(this.size.width, this.size.height),
-    };
+    this.tiles = this.createTiles();
   }
 
   getWidth(): number {
@@ -53,18 +67,30 @@ export class MaskSurfaceImpl implements MaskSurface {
     return { ...this.size };
   }
 
-  getTextureHandle(): WebGLTexture {
+  getTextureHandle(): LayerTextureHandle {
     this.assertNotDisposed();
-    return this.textures.front;
+    if (this.tiles.length === 1) {
+      return this.tiles[0].textures.front;
+    }
+    return {
+      kind: 'tiles',
+      textures: this.tiles.map((tile) => tile.textures.front),
+      tileSize: { ...this.tileSize },
+      tileCountX: this.tileCountX,
+      tileCountY: this.tileCountY,
+    };
   }
 
   clear(value = 0): void {
     this.assertNotDisposed();
     const { gl } = this;
-    this.bindFramebuffer(this.textures.front);
     gl.disable(gl.BLEND);
     gl.clearColor(value, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    for (const tile of this.tiles) {
+      this.bindFramebuffer(tile.textures.front);
+      gl.viewport(0, 0, tile.width, tile.height);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
   }
 
   replaceBuffer(buffer: Uint8Array | Uint8ClampedArray): void {
@@ -74,24 +100,42 @@ export class MaskSurfaceImpl implements MaskSurface {
       throw new Error(`MaskSurface.replaceBuffer: buffer length ${buffer.length} !== expected ${expected}`);
     }
     const { gl } = this;
-    gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RED, gl.UNSIGNED_BYTE, buffer);
+    this.forEachTile(undefined, (tile, localBounds, globalBounds) => {
+      const rowBytes = localBounds.width;
+      const tileBuffer = new Uint8Array(localBounds.width * localBounds.height);
+      const srcX = globalBounds.x;
+      const srcY = globalBounds.y;
+      for (let row = 0; row < localBounds.height; row++) {
+        const srcIndex = (srcY + row) * this.size.width + srcX;
+        const dstIndex = row * rowBytes;
+        tileBuffer.set(buffer.subarray(srcIndex, srcIndex + rowBytes), dstIndex);
+      }
+      gl.bindTexture(gl.TEXTURE_2D, tile.textures.front);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, localBounds.x, localBounds.y, localBounds.width, localBounds.height, gl.RED, gl.UNSIGNED_BYTE, tileBuffer);
+    });
   }
 
   readPixels(): Uint8Array {
     this.assertNotDisposed();
-    const { gl } = this;
-    this.bindFramebuffer(this.textures.front);
-    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
     const out = new Uint8Array(this.size.width * this.size.height);
-    gl.readPixels(0, 0, this.size.width, this.size.height, gl.RED, gl.UNSIGNED_BYTE, out);
+    this.forEachTile(undefined, (tile, localBounds, globalBounds) => {
+      const tilePixels = this.readTilePixels(tile, localBounds);
+      const rowBytes = localBounds.width;
+      for (let row = 0; row < localBounds.height; row++) {
+        const srcIndex = row * rowBytes;
+        const dstIndex = (globalBounds.y + row) * this.size.width + globalBounds.x;
+        out.set(tilePixels.subarray(srcIndex, srcIndex + rowBytes), dstIndex);
+      }
+    });
     return out;
   }
 
   applyEffect(effect: MaskSurfaceEffect, options?: MaskSurfaceApplyOptions): void {
     this.assertNotDisposed();
-    this.runProgram(effect.fragmentSrc, effect.uniforms, options);
+    this.forEachTile(options?.bounds, (tile, localBounds) => {
+      this.runProgram(tile, effect.fragmentSrc, effect.uniforms, localBounds);
+    });
   }
 
   dispose(): void {
@@ -103,8 +147,10 @@ export class MaskSurfaceImpl implements MaskSurface {
     }
     this.programs.clear();
 
-    gl.deleteTexture(this.textures.front);
-    gl.deleteTexture(this.textures.back);
+    for (const tile of this.tiles) {
+      gl.deleteTexture(tile.textures.front);
+      gl.deleteTexture(tile.textures.back);
+    }
     gl.deleteFramebuffer(this.fbo);
     gl.deleteBuffer(this.vbo);
     gl.deleteVertexArray(this.vao);
@@ -127,16 +173,15 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
-  private runProgram(fragmentSrc: string, uniforms?: Record<string, LayerEffectUniformValue>, options?: MaskSurfaceApplyOptions): void {
+  private runProgram(tile: TileState, fragmentSrc: string, uniforms?: Record<string, LayerEffectUniformValue>, bounds?: SurfaceBounds): void {
     const { gl } = this;
     const program = this.getOrCreateProgram(fragmentSrc, fragmentSrc);
-    const bounds = options?.bounds;
 
     if (bounds) {
-      this.copyTextureBounds(this.textures.front, this.textures.back, bounds);
+      this.copyTextureBounds(tile.textures.front, tile.textures.back, bounds);
     }
-    this.bindFramebuffer(this.textures.back);
-    gl.viewport(0, 0, this.size.width, this.size.height);
+    this.bindFramebuffer(tile.textures.back);
+    gl.viewport(0, 0, tile.width, tile.height);
     if (bounds) {
       gl.enable(gl.SCISSOR_TEST);
       gl.scissor(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -147,29 +192,15 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
+    gl.bindTexture(gl.TEXTURE_2D, tile.textures.front);
     const srcLoc = gl.getUniformLocation(program, 'u_src');
     if (srcLoc) gl.uniform1i(srcLoc, 0);
 
-    if (uniforms) {
-      for (const [name, value] of Object.entries(uniforms)) {
-        const loc = gl.getUniformLocation(program, name);
-        if (!loc) continue;
-        if (typeof value === 'number') {
-          gl.uniform1f(loc, value);
-        } else if (value.length === 1) {
-          gl.uniform1f(loc, value[0] as number);
-        } else if (value.length === 2) {
-          gl.uniform2f(loc, value[0] as number, value[1] as number);
-        } else if (value.length === 3) {
-          gl.uniform3f(loc, value[0] as number, value[1] as number, value[2] as number);
-        } else if (value.length === 4) {
-          gl.uniform4f(loc, value[0] as number, value[1] as number, value[2] as number, value[3] as number);
-        } else {
-          throw new Error(`MaskSurface.runProgram: unsupported uniform length for ${name}`);
-        }
-      }
-    }
+    this.applyUniforms(program, {
+      ...uniforms,
+      u_origin: [tile.originX, tile.originY],
+      u_tile_size: [tile.width, tile.height],
+    });
 
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -177,30 +208,23 @@ export class MaskSurfaceImpl implements MaskSurface {
     gl.useProgram(null);
     if (bounds) {
       gl.disable(gl.SCISSOR_TEST);
-      this.copyTextureBounds(this.textures.back, this.textures.front, bounds);
+      this.copyTextureBounds(tile.textures.back, tile.textures.front, bounds);
       return;
     }
 
-    this.swapTextures();
+    this.swapTextures(tile);
   }
 
-  private swapTextures(): void {
-    const tmp = this.textures.front;
-    this.textures.front = this.textures.back;
-    this.textures.back = tmp;
+  private swapTextures(tile: TileState): void {
+    const tmp = tile.textures.front;
+    tile.textures.front = tile.textures.back;
+    tile.textures.back = tmp;
   }
 
   private bindFramebuffer(tex: WebGLTexture): void {
     const { gl } = this;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-  }
-
-  private copyFrontToBack(): void {
-    const { gl } = this;
-    this.bindFramebuffer(this.textures.front);
-    gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
-    gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, this.size.width, this.size.height);
   }
 
   private copyTextureBounds(src: WebGLTexture, dst: WebGLTexture, bounds: SurfaceBounds): void {
@@ -239,6 +263,96 @@ export class MaskSurfaceImpl implements MaskSurface {
 
     this.programs.set(key, program);
     return program;
+  }
+
+  private createTiles(): TileState[] {
+    const tiles: TileState[] = [];
+    let index = 0;
+    for (let ty = 0; ty < this.tileCountY; ty++) {
+      for (let tx = 0; tx < this.tileCountX; tx++) {
+        const originX = tx * this.tileSize.width;
+        const originY = ty * this.tileSize.height;
+        const width = Math.min(this.tileSize.width, this.size.width - originX);
+        const height = Math.min(this.tileSize.height, this.size.height - originY);
+        tiles.push({
+          index,
+          originX,
+          originY,
+          width,
+          height,
+          textures: {
+            front: this.createTexture(width, height),
+            back: this.createTexture(width, height),
+          },
+        });
+        index += 1;
+      }
+    }
+    return tiles;
+  }
+
+  private forEachTile(
+    bounds: SurfaceBounds | undefined,
+    callback: (tile: TileState, localBounds: SurfaceBounds, globalBounds: SurfaceBounds) => void
+  ): void {
+    if (!bounds) {
+      for (const tile of this.tiles) {
+        callback(
+          tile,
+          { x: 0, y: 0, width: tile.width, height: tile.height },
+          { x: tile.originX, y: tile.originY, width: tile.width, height: tile.height }
+        );
+      }
+      return;
+    }
+
+    const boundsX1 = bounds.x + bounds.width;
+    const boundsY1 = bounds.y + bounds.height;
+    for (const tile of this.tiles) {
+      const tileX1 = tile.originX + tile.width;
+      const tileY1 = tile.originY + tile.height;
+      const x0 = Math.max(bounds.x, tile.originX);
+      const y0 = Math.max(bounds.y, tile.originY);
+      const x1 = Math.min(boundsX1, tileX1);
+      const y1 = Math.min(boundsY1, tileY1);
+      if (x1 <= x0 || y1 <= y0) continue;
+      callback(
+        tile,
+        { x: x0 - tile.originX, y: y0 - tile.originY, width: x1 - x0, height: y1 - y0 },
+        { x: x0, y: y0, width: x1 - x0, height: y1 - y0 }
+      );
+    }
+  }
+
+  private applyUniforms(program: WebGLProgram, uniforms?: Record<string, LayerEffectUniformValue>): void {
+    if (!uniforms) return;
+    const { gl } = this;
+    for (const [name, value] of Object.entries(uniforms)) {
+      const loc = gl.getUniformLocation(program, name);
+      if (!loc) continue;
+      if (typeof value === 'number') {
+        gl.uniform1f(loc, value);
+      } else if (value.length === 1) {
+        gl.uniform1f(loc, value[0] as number);
+      } else if (value.length === 2) {
+        gl.uniform2f(loc, value[0] as number, value[1] as number);
+      } else if (value.length === 3) {
+        gl.uniform3f(loc, value[0] as number, value[1] as number, value[2] as number);
+      } else if (value.length === 4) {
+        gl.uniform4f(loc, value[0] as number, value[1] as number, value[2] as number, value[3] as number);
+      } else {
+        throw new Error(`MaskSurface.applyUniforms: unsupported uniform length for ${name}`);
+      }
+    }
+  }
+
+  private readTilePixels(tile: TileState, bounds: SurfaceBounds): Uint8Array {
+    const { gl } = this;
+    this.bindFramebuffer(tile.textures.front);
+    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
+    const out = new Uint8Array(bounds.width * bounds.height);
+    gl.readPixels(bounds.x, bounds.y, bounds.width, bounds.height, gl.RED, gl.UNSIGNED_BYTE, out);
+    return out;
   }
 
   private assertNotDisposed(): void {
