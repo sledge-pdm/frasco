@@ -12,6 +12,15 @@ export interface GripKernel {
   readonly id: string;
 
   /**
+   * Define position transform before passing to GL shaders.
+   * @param position target position input
+   */
+  prePositionTransform(point: GripPoint): {
+    x: number;
+    y: number;
+  };
+
+  /**
    * Direct point drawing.
    * @param layer Target layer to draw into.
    * @param point Current stroke point (style included).

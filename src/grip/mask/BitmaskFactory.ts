@@ -9,6 +9,11 @@ export type BitmaskShape = {
   height: number;
   offsetX: number;
   offsetY: number;
+
+  prePositionTransform: (position: { x: number; y: number }) => {
+    x: number;
+    y: number;
+  };
 };
 
 export class BitmaskFactory {
@@ -59,6 +64,14 @@ export class BitmaskFactory {
       height,
       offsetX: -centerX,
       offsetY: -centerY,
+
+      prePositionTransform: (position) => {
+        return kernel.prePositionTransform({
+          x: position.x,
+          y: position.y,
+          style,
+        });
+      },
     };
   }
 
@@ -69,7 +82,7 @@ export class BitmaskFactory {
   private ensureSize(size: Size) {
     if (!this.size || this.size.width !== size.width || this.size.height !== size.height) {
       this.size = { ...size };
-      this.layer.resize(size.width, size.height);
+      this.layer.resizeClear(size.width, size.height);
       this.disposeMask();
     }
   }

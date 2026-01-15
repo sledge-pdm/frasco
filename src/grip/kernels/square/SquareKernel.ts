@@ -13,11 +13,24 @@ import { SQUARE_POINT_300ES } from './shaders/point';
 export class SquareKernel implements GripKernel {
   readonly id = 'square';
 
+  prePositionTransform(point: GripPoint) {
+    if (point.style.size % 2 === 0) {
+      return {
+        x: Math.round(point.x),
+        y: Math.round(point.y),
+      };
+    } else {
+      return {
+        x: Math.round(point.x - 0.5) + 0.5,
+        y: Math.round(point.y - 0.5) + 0.5,
+      };
+    }
+  }
+
   drawPoint(layer: Layer, point: GripPoint): void {
     const half = squareHalf(point.style.size);
     if (half < 0) return;
-    const centerX = snapSquareCenter(point.x, point.style.size);
-    const centerY = snapSquareCenter(point.y, point.style.size);
+    const { x: centerX, y: centerY } = this.prePositionTransform(point);
     const color = normalizeColor(point.style.color);
     const opacity = point.style.opacity ?? 1;
     layer.applyEffect({
@@ -34,10 +47,12 @@ export class SquareKernel implements GripKernel {
   drawSegment(layer: Layer, from: GripPoint, to: GripPoint): void {
     const half = squareHalf(to.style.size);
     if (half < 0) return;
-    const fromX = snapSquareCenter(from.x, to.style.size);
-    const fromY = snapSquareCenter(from.y, to.style.size);
-    const toX = snapSquareCenter(to.x, to.style.size);
-    const toY = snapSquareCenter(to.y, to.style.size);
+    const toStyledFrom: GripPoint = {
+      ...from,
+      style: to.style,
+    };
+    const { x: fromX, y: fromY } = this.prePositionTransform(toStyledFrom);
+    const { x: toX, y: toY } = this.prePositionTransform(to);
     const color = normalizeColor(to.style.color);
     const opacity = to.style.opacity ?? 1;
     layer.applyEffect({
@@ -55,8 +70,7 @@ export class SquareKernel implements GripKernel {
   stampMaskPoint(mask: MaskSurface, layer: Layer, point: GripPoint): SurfaceBounds | undefined {
     const half = squareHalf(point.style.size);
     if (half < 0) return;
-    const centerX = snapSquareCenter(point.x, point.style.size);
-    const centerY = snapSquareCenter(point.y, point.style.size);
+    const { x: centerX, y: centerY } = this.prePositionTransform(point);
     const bounds = makePointBounds(layer, centerX, centerY, half);
     mask.applyEffect(
       {
@@ -74,10 +88,12 @@ export class SquareKernel implements GripKernel {
   stampMaskSegment(mask: MaskSurface, layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined {
     const half = squareHalf(to.style.size);
     if (half < 0) return;
-    const fromX = snapSquareCenter(from.x, to.style.size);
-    const fromY = snapSquareCenter(from.y, to.style.size);
-    const toX = snapSquareCenter(to.x, to.style.size);
-    const toY = snapSquareCenter(to.y, to.style.size);
+    const toStyledFrom: GripPoint = {
+      ...from,
+      style: to.style,
+    };
+    const { x: fromX, y: fromY } = this.prePositionTransform(toStyledFrom);
+    const { x: toX, y: toY } = this.prePositionTransform(to);
     const bounds = makeLineBounds(layer, { ...from, x: fromX, y: fromY }, { ...to, x: toX, y: toY }, half);
     mask.applyEffect(
       {
@@ -103,31 +119,25 @@ export class SquareKernel implements GripKernel {
   getComputedPointBounds(layer: Layer, point: GripPoint): SurfaceBounds | undefined {
     const half = squareHalf(point.style.size);
     if (half < 0) return;
-    const centerX = snapSquareCenter(point.x, point.style.size);
-    const centerY = snapSquareCenter(point.y, point.style.size);
+    const { x: centerX, y: centerY } = this.prePositionTransform(point);
     return makePointBounds(layer, centerX, centerY, half);
   }
 
   getComputedSegmentBounds(layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined {
     const half = squareHalf(to.style.size);
     if (half < 0) return;
-    const fromX = snapSquareCenter(from.x, to.style.size);
-    const fromY = snapSquareCenter(from.y, to.style.size);
-    const toX = snapSquareCenter(to.x, to.style.size);
-    const toY = snapSquareCenter(to.y, to.style.size);
+    const toStyledFrom: GripPoint = {
+      ...from,
+      style: to.style,
+    };
+    const { x: fromX, y: fromY } = this.prePositionTransform(toStyledFrom);
+    const { x: toX, y: toY } = this.prePositionTransform(to);
     return makeLineBounds(layer, { ...from, x: fromX, y: fromY }, { ...to, x: toX, y: toY }, half);
   }
 }
 
 function squareHalf(size: number): number {
   return (size - 1) / 2;
-}
-
-function snapSquareCenter(value: number, size: number): number {
-  if (size % 2 === 0) {
-    return Math.round(value);
-  }
-  return Math.round(value - 0.5) + 0.5;
 }
 
 function normalizeColor(color: GripColor): [number, number, number, number] {

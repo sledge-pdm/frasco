@@ -13,11 +13,24 @@ import { CIRCLE_POINT_300ES } from './shaders/point';
 export class CircleKernel implements GripKernel {
   readonly id = 'circle';
 
+  prePositionTransform(point: GripPoint) {
+    if (point.style.size % 2 === 0) {
+      return {
+        x: Math.round(point.x),
+        y: Math.round(point.y),
+      };
+    } else {
+      return {
+        x: Math.round(point.x - 0.5) + 0.5,
+        y: Math.round(point.y - 0.5) + 0.5,
+      };
+    }
+  }
+
   drawPoint(layer: Layer, point: GripPoint): void {
     const radius = point.style.size / 2;
     if (radius <= 0) return;
-    const centerX = snapCircleCenter(point.x, point.style.size);
-    const centerY = snapCircleCenter(point.y, point.style.size);
+    const { x: centerX, y: centerY } = this.prePositionTransform(point);
     const color = normalizeColor(point.style.color);
     const opacity = point.style.opacity ?? 1;
     layer.applyEffect({
@@ -34,10 +47,12 @@ export class CircleKernel implements GripKernel {
   drawSegment(layer: Layer, from: GripPoint, to: GripPoint): void {
     const radius = to.style.size / 2;
     if (radius <= 0) return;
-    const fromX = snapCircleCenter(from.x, to.style.size);
-    const fromY = snapCircleCenter(from.y, to.style.size);
-    const toX = snapCircleCenter(to.x, to.style.size);
-    const toY = snapCircleCenter(to.y, to.style.size);
+    const toStyledFrom: GripPoint = {
+      ...from,
+      style: to.style,
+    };
+    const { x: fromX, y: fromY } = this.prePositionTransform(toStyledFrom);
+    const { x: toX, y: toY } = this.prePositionTransform(to);
     const color = normalizeColor(to.style.color);
     const opacity = to.style.opacity ?? 1;
     layer.applyEffect({
@@ -55,8 +70,7 @@ export class CircleKernel implements GripKernel {
   stampMaskPoint(mask: MaskSurface, layer: Layer, point: GripPoint): SurfaceBounds | undefined {
     const radius = point.style.size / 2;
     if (radius <= 0) return;
-    const centerX = snapCircleCenter(point.x, point.style.size);
-    const centerY = snapCircleCenter(point.y, point.style.size);
+    const { x: centerX, y: centerY } = this.prePositionTransform(point);
     const bounds = makePointBounds(layer, centerX, centerY, radius);
     mask.applyEffect(
       {
@@ -74,10 +88,12 @@ export class CircleKernel implements GripKernel {
   stampMaskSegment(mask: MaskSurface, layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined {
     const radius = to.style.size / 2;
     if (radius <= 0) return;
-    const fromX = snapCircleCenter(from.x, to.style.size);
-    const fromY = snapCircleCenter(from.y, to.style.size);
-    const toX = snapCircleCenter(to.x, to.style.size);
-    const toY = snapCircleCenter(to.y, to.style.size);
+    const toStyledFrom: GripPoint = {
+      ...from,
+      style: to.style,
+    };
+    const { x: fromX, y: fromY } = this.prePositionTransform(toStyledFrom);
+    const { x: toX, y: toY } = this.prePositionTransform(to);
     const bounds = makeLineBounds(layer, { ...from, x: fromX, y: fromY }, { ...to, x: toX, y: toY }, radius);
     mask.applyEffect(
       {
@@ -103,18 +119,19 @@ export class CircleKernel implements GripKernel {
   getComputedPointBounds(layer: Layer, point: GripPoint): SurfaceBounds | undefined {
     const radius = point.style.size / 2;
     if (radius <= 0) return;
-    const centerX = snapCircleCenter(point.x, point.style.size);
-    const centerY = snapCircleCenter(point.y, point.style.size);
+    const { x: centerX, y: centerY } = this.prePositionTransform(point);
     return makePointBounds(layer, centerX, centerY, radius);
   }
 
   getComputedSegmentBounds(layer: Layer, from: GripPoint, to: GripPoint): SurfaceBounds | undefined {
     const radius = to.style.size / 2;
     if (radius <= 0) return;
-    const fromX = snapCircleCenter(from.x, to.style.size);
-    const fromY = snapCircleCenter(from.y, to.style.size);
-    const toX = snapCircleCenter(to.x, to.style.size);
-    const toY = snapCircleCenter(to.y, to.style.size);
+    const toStyledFrom: GripPoint = {
+      ...from,
+      style: to.style,
+    };
+    const { x: fromX, y: fromY } = this.prePositionTransform(toStyledFrom);
+    const { x: toX, y: toY } = this.prePositionTransform(to);
     return makeLineBounds(layer, { ...from, x: fromX, y: fromY }, { ...to, x: toX, y: toY }, radius);
   }
 }
@@ -125,13 +142,6 @@ function normalizeColor(color: GripColor): [number, number, number, number] {
     return [color[0] / 255, color[1] / 255, color[2] / 255, color[3] / 255];
   }
   return [color[0], color[1], color[2], color[3]];
-}
-
-function snapCircleCenter(value: number, size: number): number {
-  if (size % 2 === 0) {
-    return Math.round(value);
-  }
-  return Math.round(value - 0.5) + 0.5;
 }
 
 function makePointBounds(layer: Layer, x: number, y: number, radius: number): SurfaceBounds | undefined {
