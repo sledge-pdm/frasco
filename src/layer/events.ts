@@ -12,8 +12,15 @@ export type LayerHistoryRegisteredEvent = {
   bounds: SurfaceBounds;
 };
 
-export type LayerEvent = LayerResizedEvent | LayerHistoryRegisteredEvent;
+export type LayerHistoryAppliedEvent = {
+  type: 'historyApplied';
+  bounds: SurfaceBounds;
+};
+
+export type LayerEvent = LayerResizedEvent | LayerHistoryRegisteredEvent | LayerHistoryAppliedEvent;
 
 export type LayerEventType = LayerEvent['type'];
 
 export type LayerEventListener = (event: LayerEvent) => void;
+
+export type LayerEventFor<T extends LayerEventType> = Extract<LayerEvent, { type: T }>;

@@ -4,7 +4,7 @@ import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from '../histo
 import { MaskSurfaceImpl } from '../surface/MaskSurface';
 import type { MaskSurface, SurfaceBounds } from '../surface/types';
 import { LayerTile } from './LayerTile';
-import type { LayerEvent, LayerEventListener, LayerEventType } from './events';
+import type { LayerEvent, LayerEventFor, LayerEventListener, LayerEventType } from './events';
 import { COPY_FRAG_300ES, FULLSCREEN_VERT_300ES } from './shaders';
 import type { LayerEffect, LayerExportOptions, LayerInit, LayerTextureHandle, LayerTileInfo, Rgba8, Size, TileTextureSet } from './types';
 
@@ -64,8 +64,11 @@ export class Layer implements HistoryTarget {
     return { ...this.size };
   }
 
-  addListener(listener: LayerEventListener): void;
-  addListener(type: LayerEventType, listener: LayerEventListener): void;
+  getContext(): WebGL2RenderingContext {
+    return this.gl;
+  }
+
+  addListener<T extends LayerEventType>(type: T, listener: (event: LayerEventFor<T>) => void): void;
   addListener(typeOrListener: LayerEventType | LayerEventListener, listener?: LayerEventListener): void {
     if (typeof typeOrListener === 'function') {
       this.listeners.add(typeOrListener);
@@ -78,7 +81,7 @@ export class Layer implements HistoryTarget {
   }
 
   removeListener(listener: LayerEventListener): void;
-  removeListener(type: LayerEventType, listener: LayerEventListener): void;
+  removeListener<T extends LayerEventType>(type: T, listener: (event: LayerEventFor<T>) => void): void;
   removeListener(typeOrListener: LayerEventType | LayerEventListener, listener?: LayerEventListener): void {
     if (typeof typeOrListener === 'function') {
       this.listeners.delete(typeOrListener);
@@ -186,11 +189,15 @@ export class Layer implements HistoryTarget {
   }
 
   undo(): void {
-    this.history?.undo();
+    if (!this.history || !this.history.canUndo()) return;
+    this.history.undo();
+    this.emitHistoryApplied({ x: 0, y: 0, width: this.size.width, height: this.size.height });
   }
 
   redo(): void {
-    this.history?.redo();
+    if (!this.history || !this.history.canRedo()) return;
+    this.history.redo();
+    this.emitHistoryApplied({ x: 0, y: 0, width: this.size.width, height: this.size.height });
   }
 
   canUndo(): boolean {
@@ -748,6 +755,10 @@ export class Layer implements HistoryTarget {
 
   private emitHistoryRegistered(bounds: SurfaceBounds): void {
     this.emit({ type: 'historyRegistered', bounds });
+  }
+
+  private emitHistoryApplied(bounds: SurfaceBounds): void {
+    this.emit({ type: 'historyApplied', bounds });
   }
 
   private applyUniforms(program: WebGLProgram, uniforms?: Record<string, number | readonly number[]>): void {
