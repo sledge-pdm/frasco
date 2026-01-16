@@ -1,16 +1,22 @@
 {
   "name": "@sledge-pdm/frasco",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "WebGL Texture processing package for sledge",
   "author": "innsbluck",
   "license": "MIT",
   "private": false,
   "type": "module",
   "sideEffects": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "scripts": {
+    "build": "pnpm exec tsc -p tsconfig.build.json && pnpm exec tsc-alias -p tsconfig.build.json",
     "test": "vitest run --browser",
     "test:ui": "vitest --browser",
     "dev": "vite",
@@ -23,12 +29,19 @@
   "dependencies": {
     "@sledge-pdm/core": "^1.1.5"
   },
+  "files": [
+    "dist",
+    "public",
+    "README.md",
+    "LICENSE"
+  ],
   "devDependencies": {
     "@types/node": "^25.0.3",
     "@vitest/browser-playwright": "^4.0.16",
     "playwright": "^1.57.0",
     "prettier": "^3.7.4",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
     "vite-plugin-top-level-await": "^1.6.0",
