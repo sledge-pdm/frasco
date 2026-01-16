@@ -8,6 +8,10 @@
     "declarationMap": true,
     "sourceMap": true
   },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "resolveFullExtension": ".js"
+  },
   "include": ["index.ts", "src/**/*"],
   "exclude": ["dist", "node_modules", "test"]
 }
