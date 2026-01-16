@@ -1,6 +1,6 @@
-import type { GripPoint, GripStrokeStyle } from '../grip/types';
-import type { Layer } from '../layer';
-import type { MaskSurface, SurfaceBounds } from '../surface/types';
+import type { GripPoint, GripStrokeStyle } from '~/grip';
+import type { Layer } from '~/layer';
+import type { MaskSurface, SurfaceBounds } from '~/surface';
 
 /**
  * Definition of a shape "kernel" (basic stamp + two-point completion).

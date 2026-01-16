@@ -1,5 +1,5 @@
 ﻿import { describe, it } from 'vitest';
-import { Layer } from '../../../src/layer';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { loadImageData } from '../../support/e2e';
 import { makeGL2Context } from '../../support/gl';
@@ -38,4 +38,3 @@ describe('Layer (e2e)', () => {
     layer.dispose();
   });
 });
-

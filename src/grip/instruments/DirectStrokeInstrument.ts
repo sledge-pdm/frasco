@@ -1,7 +1,7 @@
-import type { GripPoint } from '../../grip/types';
-import type { Layer } from '../../layer';
+import type { Layer } from '~/layer';
 import type { GripInstrument } from '../Instrument';
 import type { GripKernel } from '../Kernel';
+import type { GripPoint } from '../types';
 
 /**
  * @description Instrument that directly draws points and segments onto the layer.

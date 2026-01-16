@@ -1,11 +1,12 @@
 ﻿import { RawPixelData } from '@sledge-pdm/core';
-import { LayerHistory } from '../history/LayerHistory';
-import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from '../history/types';
-import { MaskSurfaceImpl } from '../surface/MaskSurface';
-import type { MaskSurface, SurfaceBounds } from '../surface/types';
+import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from '~/history';
+import { LayerHistory } from '~/history';
+import type { MaskSurface, SurfaceBounds } from '~/surface';
+import { MaskSurfaceImpl } from '~/surface';
+import { createTexture, flipPixelsYInPlace, readTexturePixels } from '~/utils';
 import type { LayerEvent, LayerEventFor, LayerEventType } from './events';
 import { COPY_FRAG_300ES, FULLSCREEN_VERT_300ES } from './shaders';
-import type { LayerEffect, LayerExportOptions, LayerInit, Rgba8, Size } from './types';
+import type { LayerEffect, LayerInit, ReadPixelsOptions, Rgba8, Size, WritePixelsOptions } from './types';
 
 type TexturePair = {
   front: WebGLTexture;
@@ -43,12 +44,12 @@ export class Layer implements HistoryTarget {
     this.initFullscreenQuad();
 
     this.textures = {
-      front: this.createTexture(this.size.width, this.size.height, init.data),
-      back: this.createTexture(this.size.width, this.size.height),
+      front: createTexture(gl, this.size.width, this.size.height, init.data),
+      back: createTexture(gl, this.size.width, this.size.height),
     };
   }
 
-  getContext(): WebGL2RenderingContext {
+  getGLContext(): WebGL2RenderingContext {
     return this.gl;
   }
 
@@ -93,12 +94,7 @@ export class Layer implements HistoryTarget {
 
   createEmptyTexture(): WebGLTexture {
     this.assertNotDisposed();
-    return this.createTexture(this.size.width, this.size.height);
-  }
-
-  deleteTexture(texture: WebGLTexture): void {
-    this.assertNotDisposed();
-    this.gl.deleteTexture(texture);
+    return createTexture(this.gl, this.size.width, this.size.height, undefined);
   }
 
   setHistoryBackend<TSnapshot>(backend: HistoryBackend<TSnapshot>, maxItems = 100): void {
@@ -168,7 +164,7 @@ export class Layer implements HistoryTarget {
   commitHistoryFromTexture(texture: WebGLTexture, bounds: SurfaceBounds): void {
     const history = this.history;
     if (!history) return;
-    const buffer = this.readTexturePixels(texture, bounds);
+    const buffer = readTexturePixels(this.gl, texture, bounds, this.fbo);
     history.pushRaw({
       bounds,
       size: { width: bounds.width, height: bounds.height },
@@ -217,8 +213,8 @@ export class Layer implements HistoryTarget {
 
     this.size = { width, height };
     this.textures = {
-      front: this.createTexture(width, height),
-      back: this.createTexture(width, height),
+      front: createTexture(gl, width, height, undefined),
+      back: createTexture(gl, width, height, undefined),
     };
     this.emit({ type: 'resized', size: { width, height } });
   }
@@ -241,8 +237,8 @@ export class Layer implements HistoryTarget {
     const oldBack = this.textures.back;
     const oldSize = { ...this.size };
 
-    const nextFront = this.createTexture(width, height);
-    const nextBack = this.createTexture(width, height);
+    const nextFront = createTexture(gl, width, height, undefined);
+    const nextBack = createTexture(gl, width, height, undefined);
 
     const srcX = Math.floor(srcOrigin.x);
     const srcY = Math.floor(srcOrigin.y);
@@ -300,45 +296,24 @@ export class Layer implements HistoryTarget {
     this.emit({ type: 'resized', size: { width, height } });
   }
 
-  writePixels(buffer: RawPixelData, bounds?: SurfaceBounds | Size): void {
+  writePixels(buffer: RawPixelData, options?: WritePixelsOptions): void {
     this.assertNotDisposed();
-    if (isSurfaceBounds(bounds)) {
-      const expected = bounds.width * bounds.height * 4;
-      if (buffer.length !== expected) {
-        throw new Error(`Layer.writePixels: buffer length ${buffer.length} !== expected ${expected}`);
-      }
-      const { gl } = this;
-      gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
-      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
-      return;
-    }
 
-    const size = bounds ?? this.size;
-    if (size.width !== this.size.width || size.height !== this.size.height) {
-      this.resizeClear(size.width, size.height);
-    }
-
-    const expected = this.size.width * this.size.height * 4;
+    const bounds = options?.bounds ?? this.getFullBounds();
+    const expected = bounds.width * bounds.height * 4;
     if (buffer.length !== expected) {
       throw new Error(`Layer.writePixels: buffer length ${buffer.length} !== expected ${expected}`);
     }
-
     const { gl } = this;
     gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, this.size.width, this.size.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
-    this.emit({ type: 'historyApplied', bounds: this.getFullBounds() });
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+    this.emit({ type: 'historyApplied', bounds });
   }
 
-  readPixels(): Uint8Array;
-  readPixels(bounds: SurfaceBounds): Uint8Array;
-  readPixels(options: LayerExportOptions): Uint8Array;
-  readPixels(bounds: SurfaceBounds, options: LayerExportOptions): Uint8Array;
-  readPixels(boundsOrOptions?: SurfaceBounds | LayerExportOptions, options?: LayerExportOptions): Uint8Array {
+  readPixels(options?: ReadPixelsOptions): Uint8Array {
     this.assertNotDisposed();
-    const bounds = isSurfaceBounds(boundsOrOptions) ? boundsOrOptions : this.getFullBounds();
-    const resolvedOptions = isSurfaceBounds(boundsOrOptions) ? options : boundsOrOptions;
+    const bounds = options?.bounds ?? this.getFullBounds();
     const { gl } = this;
     this.bindFramebuffer(this.textures.front);
 
@@ -346,7 +321,7 @@ export class Layer implements HistoryTarget {
     const out = new Uint8Array(bounds.width * bounds.height * 4);
     gl.readPixels(bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
 
-    if (resolvedOptions?.flipY) {
+    if (options?.flipY) {
       flipPixelsYInPlace(out, bounds.width, bounds.height);
     }
     return out;
@@ -356,7 +331,7 @@ export class Layer implements HistoryTarget {
     this.assertNotDisposed();
     const resolved = bounds ?? this.getFullBounds();
     const { gl } = this;
-    const tex = this.createTexture(resolved.width, resolved.height);
+    const tex = createTexture(gl, resolved.width, resolved.height, undefined);
     this.bindFramebuffer(this.textures.front);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, resolved.x, resolved.y, resolved.width, resolved.height);
@@ -393,27 +368,6 @@ export class Layer implements HistoryTarget {
     gl.useProgram(null);
 
     this.swapTextures();
-  }
-
-  createTextureFromRaw(buffer: Uint8Array, size: Size): WebGLTexture {
-    this.assertNotDisposed();
-    const expected = size.width * size.height * 4;
-    if (buffer.length !== expected) {
-      throw new Error(`Layer.createTextureFromRaw: buffer length ${buffer.length} !== expected ${expected}`);
-    }
-    return this.createTexture(size.width, size.height, buffer);
-  }
-
-  readTexturePixels(texture: WebGLTexture, bounds?: SurfaceBounds): Uint8Array {
-    this.assertNotDisposed();
-    const resolved = bounds ?? this.getFullBounds();
-    const { gl } = this;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-    gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
-    const out = new Uint8Array(resolved.width * resolved.height * 4);
-    gl.readPixels(resolved.x, resolved.y, resolved.width, resolved.height, gl.RGBA, gl.UNSIGNED_BYTE, out);
-    return out;
   }
 
   applyEffect(effect: LayerEffect): void {
@@ -574,22 +528,6 @@ export class Layer implements HistoryTarget {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
   }
 
-  private createTexture(width: number, height: number, data?: RawPixelData): WebGLTexture {
-    const { gl } = this;
-    const tex = gl.createTexture();
-    if (!tex) throw new Error('Layer: failed to create texture');
-
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data ?? null);
-    return tex;
-  }
-
   private copyFrontToBack(): void {
     const { gl } = this;
     this.bindFramebuffer(this.textures.front);
@@ -634,16 +572,6 @@ export class Layer implements HistoryTarget {
   }
 }
 
-function isSurfaceBounds(value: SurfaceBounds | LayerExportOptions | Size | undefined): value is SurfaceBounds {
-  if (!value) return false;
-  return (
-    typeof (value as SurfaceBounds).x === 'number' &&
-    typeof (value as SurfaceBounds).y === 'number' &&
-    typeof (value as SurfaceBounds).width === 'number' &&
-    typeof (value as SurfaceBounds).height === 'number'
-  );
-}
-
 function compileShader(gl: WebGL2RenderingContext, type: GLenum, source: string): WebGLShader {
   const shader = gl.createShader(type);
   if (!shader) throw new Error('Layer: failed to create shader');
@@ -670,17 +598,3 @@ function linkProgram(gl: WebGL2RenderingContext, vs: WebGLShader, fs: WebGLShade
   }
   return program;
 }
-
-function flipPixelsYInPlace(buffer: Uint8Array, width: number, height: number): void {
-  const rowBytes = width * 4;
-  const tmp = new Uint8Array(rowBytes);
-  const half = Math.floor(height / 2);
-  for (let y = 0; y < half; y++) {
-    const top = y * rowBytes;
-    const bottom = (height - 1 - y) * rowBytes;
-    tmp.set(buffer.subarray(top, top + rowBytes));
-    buffer.copyWithin(top, bottom, bottom + rowBytes);
-    buffer.set(tmp, bottom);
-  }
-}
-

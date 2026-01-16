@@ -1,4 +1,4 @@
-﻿import type { SurfaceBounds } from '../surface/types';
+﻿import type { SurfaceBounds } from '~/surface';
 import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from './types';
 
 export class LayerHistory<TSnapshot> {
@@ -92,4 +92,3 @@ export class LayerHistory<TSnapshot> {
     this.redoStack = [];
   }
 }
-

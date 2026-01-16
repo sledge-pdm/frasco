@@ -1,5 +1,5 @@
-import type { GripPoint } from '../grip/types';
-import type { Layer } from '../layer';
+import type { GripPoint } from '~/grip';
+import type { Layer } from '~/layer';
 import type { GripKernel } from './Kernel';
 
 /**

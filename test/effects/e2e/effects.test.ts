@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { BrightnessContrastEffect, GrayscaleEffect, InvertEffect, PosterizeEffect } from '../../../src/effects';
-import { Layer } from '../../../src/layer';
+import { BrightnessContrastEffect, GrayscaleEffect, InvertEffect, PosterizeEffect } from '~/effects';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { E2EImage, loadImageData } from '../../support/e2e';
 import { makeGL2Context } from '../../support/gl';
@@ -92,4 +92,3 @@ describe('Effects (e2e)', () => {
     verify(layer, expected);
   });
 });
-

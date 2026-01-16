@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest';
-import { TextureHistoryBackend } from '../../src/history';
-import { Layer } from '../../src/layer';
-import { LayerThumbnail } from '../../src/thumbnail';
+import { TextureHistoryBackend } from '~/history';
+import { Layer } from '~/layer';
+import { LayerThumbnail } from '~/thumbnail';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { make2x2BottomLeftOriginPattern, make2x2TopLeftOriginPattern } from '../support/patterns';
@@ -79,7 +79,8 @@ describe('LayerThumbnail', () => {
     const image = thumbnail.getImageData(2, 2);
     const out = new Uint8Array(image.data.buffer.slice(0));
 
-    layer.writePixels(new Uint8Array(2 * 2 * 4), { x: 0, y: 0, width: 2, height: 2 });
+    const bounds = { x: 0, y: 0, width: 2, height: 2 };
+    layer.writePixels(new Uint8Array(2 * 2 * 4), { bounds });
     const after = thumbnail.getImageData(2, 2);
     const outAfter = new Uint8Array(after.data.buffer.slice(0));
 
@@ -101,7 +102,8 @@ describe('LayerThumbnail', () => {
 
     const patch = new Uint8Array(2 * 2 * 4);
     patch.fill(200);
-    layer.writePixels(patch, { x: 0, y: 0, width: 2, height: 2 });
+    const bounds = { x: 0, y: 0, width: 2, height: 2 };
+    layer.writePixels(patch, { bounds });
     layer.commitHistory({ x: 0, y: 0, width: 2, height: 2 });
 
     const updated = thumbnail.getImageData(2, 2);

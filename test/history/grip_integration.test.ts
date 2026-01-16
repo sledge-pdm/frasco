@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { CircleKernel, Grip, MaskStrokeInstrument } from '../../src/grip';
-import { Layer } from '../../src/layer';
+import { CircleKernel, Grip, MaskStrokeInstrument } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { HISTORY_BACKENDS } from './utils';
@@ -33,4 +33,3 @@ describe('History (grip integration)', () => {
     });
   }
 });
-

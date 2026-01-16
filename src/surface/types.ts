@@ -1,4 +1,4 @@
-import type { LayerEffectUniformValue, Size } from '../layer/types';
+import type { LayerEffectUniformValue, Size } from '~/layer/types';
 
 export type SurfaceBounds = {
   x: number;

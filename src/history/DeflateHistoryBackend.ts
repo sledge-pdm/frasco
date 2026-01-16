@@ -1,21 +1,27 @@
 import { gzipDeflate, gzipInflate } from '@sledge-pdm/core';
-import type { Size } from '../layer/types';
-import type { SurfaceBounds } from '../surface/types';
+import type { Size } from '~/layer/types';
+import type { SurfaceBounds } from '~/surface';
 import type { DeflateHistorySnapshot, HistoryBackend, HistoryRawSnapshot, HistoryTarget } from './types';
 
 export class DeflateHistoryBackend implements HistoryBackend<DeflateHistorySnapshot> {
   capture(target: HistoryTarget, bounds?: SurfaceBounds): DeflateHistorySnapshot {
     const size = target.getSize();
     const resolved = bounds ?? { x: 0, y: 0, width: size.width, height: size.height };
-    const raw = target.readPixels(resolved);
+    const raw = target.readPixels({
+      bounds: resolved,
+    });
     const deflated = gzipDeflate(raw);
     return { bounds: resolved, size: { width: resolved.width, height: resolved.height }, deflated };
   }
 
   apply(target: HistoryTarget, snapshot: DeflateHistorySnapshot): void {
     const raw = gzipInflate(snapshot.deflated);
-    const current = target.readPixels(snapshot.bounds);
-    target.writePixels(raw, snapshot.bounds);
+    const current = target.readPixels({
+      bounds: snapshot.bounds,
+    });
+    target.writePixels(raw, {
+      bounds: snapshot.bounds,
+    });
     snapshot.deflated = gzipDeflate(current);
   }
 

@@ -1,6 +1,6 @@
 import { decodeWebp, encodeWebp, toUint8Array } from '@sledge-pdm/core';
-import type { Size } from '../layer/types';
-import type { SurfaceBounds } from '../surface/types';
+import type { Size } from '~/layer';
+import type { SurfaceBounds } from '~/surface';
 import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget, WebpHistorySnapshot } from './types';
 
 /**
@@ -10,15 +10,21 @@ export class WebpHistoryBackend implements HistoryBackend<WebpHistorySnapshot> {
   capture(target: HistoryTarget, bounds?: SurfaceBounds): WebpHistorySnapshot {
     const size = target.getSize();
     const resolved = bounds ?? { x: 0, y: 0, width: size.width, height: size.height };
-    const raw = target.readPixels(resolved);
+    const raw = target.readPixels({
+      bounds: resolved,
+    });
     const webp = encodeWebp(raw, resolved.width, resolved.height);
     return { bounds: resolved, size: { width: resolved.width, height: resolved.height }, webp };
   }
 
   apply(target: HistoryTarget, snapshot: WebpHistorySnapshot): void {
     const raw = decodeWebp(snapshot.webp, snapshot.size.width, snapshot.size.height);
-    const current = target.readPixels(snapshot.bounds);
-    target.writePixels(toUint8Array(raw), snapshot.bounds);
+    const current = target.readPixels({
+      bounds: snapshot.bounds,
+    });
+    target.writePixels(toUint8Array(raw), {
+      bounds: snapshot.bounds,
+    });
     snapshot.webp = encodeWebp(current, snapshot.size.width, snapshot.size.height);
   }
 

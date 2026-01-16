@@ -1,6 +1,6 @@
 ﻿import { describe, expect, it } from 'vitest';
-import { GripPoint, MaskStrokeInstrument, SquareKernel } from '../../../src/grip';
-import { Layer } from '../../../src/layer';
+import { GripPoint, MaskStrokeInstrument, SquareKernel } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';
 
@@ -98,4 +98,3 @@ describe('MaskStrokeInstrument', () => {
     layerDirect.dispose();
   });
 });
-

@@ -1,4 +1,4 @@
-import type { SurfaceBounds } from '../surface/types';
+import type { SurfaceBounds } from '~/surface';
 import type { Size } from './types';
 
 export type LayerResizedEvent = {

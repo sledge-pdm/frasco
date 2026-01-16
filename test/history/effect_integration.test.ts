@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { InvertEffect } from '../../src/effects';
-import { Layer } from '../../src/layer';
+import { InvertEffect } from '~/effects';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { loadImageData } from '../support/e2e';
 import { makeGL2Context } from '../support/gl';
@@ -35,4 +35,3 @@ describe('History (effects integration)', () => {
     });
   }
 });
-

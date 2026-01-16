@@ -1,6 +1,6 @@
-import type { LayerEventFor, LayerEventType } from '../layer';
-import type { Layer } from '../layer/Layer';
-import type { SurfaceBounds } from '../surface/types';
+import type { Layer, LayerEventFor, LayerEventType } from '~/layer';
+import type { SurfaceBounds } from '~/surface';
+import { flipPixelsYInPlace } from '~/utils';
 
 export type LayerThumbnailOptions = {
   scale?: number;
@@ -32,7 +32,7 @@ export class LayerThumbnail {
 
   constructor(layer: Layer, options?: LayerThumbnailOptions) {
     this.layer = layer;
-    this.gl = layer.getContext();
+    this.gl = layer.getGLContext();
     this.scale = Math.max(1, Math.floor(options?.scale ?? 8));
     const updateOn = options?.updateOn ?? ['historyRegistered', 'historyApplied', 'resized'];
     this.updateOn = new Set(updateOn);
@@ -204,18 +204,5 @@ export class LayerThumbnail {
     const fbo = gl.createFramebuffer();
     if (!fbo) throw new Error('LayerThumbnail: failed to create framebuffer');
     return fbo;
-  }
-}
-
-function flipPixelsYInPlace(buffer: Uint8Array, width: number, height: number): void {
-  const rowBytes = width * 4;
-  const tmp = new Uint8Array(rowBytes);
-  const half = Math.floor(height / 2);
-  for (let y = 0; y < half; y++) {
-    const top = y * rowBytes;
-    const bottom = (height - 1 - y) * rowBytes;
-    tmp.set(buffer.subarray(top, top + rowBytes));
-    buffer.copyWithin(top, bottom, bottom + rowBytes);
-    buffer.set(tmp, bottom);
   }
 }

@@ -1,5 +1,5 @@
-import { FULLSCREEN_VERT_300ES } from '../layer/shaders';
-import type { LayerEffectUniformValue, Size } from '../layer/types';
+import { FULLSCREEN_VERT_300ES } from '~/layer/shaders';
+import type { LayerEffectUniformValue, Size } from '~/layer/types';
 import type { MaskSurface, MaskSurfaceApplyOptions, MaskSurfaceEffect, SurfaceBounds } from './types';
 
 type TexturePair = {

@@ -1,4 +1,4 @@
-import type { RgbaFloat, Size } from '../layer/types';
+import type { RgbaFloat, Size } from '~/layer';
 
 export enum BlendMode {
   normal = 'Normal',

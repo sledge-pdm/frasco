@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Layer } from '../../src/layer';
+import { Layer } from '~/layer';
 import { makeGL2Context } from '../support/gl';
 
 describe('Layer.dispose', () => {

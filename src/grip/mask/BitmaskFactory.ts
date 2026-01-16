@@ -1,5 +1,5 @@
-import type { Layer, Size } from '../../layer';
-import type { MaskSurface } from '../../surface';
+import type { Layer, Size } from '~/layer';
+import type { MaskSurface } from '~/surface';
 import type { GripKernel } from '../Kernel';
 import type { GripStrokeStyle } from '../types';
 

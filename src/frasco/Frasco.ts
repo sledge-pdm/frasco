@@ -1,5 +1,5 @@
-import { FULLSCREEN_VERT_300ES } from '../layer/shaders';
-import type { RgbaFloat, Size } from '../layer/types';
+import type { RgbaFloat, Size } from '~/layer';
+import { FULLSCREEN_VERT_300ES } from '~/layer';
 import { BLEND_FRAG_300ES, COPY_FRAG_FLIP_300ES } from './shaders';
 import type { ComposeOptions, CompositeLayer, FrascoOptions } from './types';
 import { getBlendModeId } from './types';

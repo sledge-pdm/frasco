@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { CircleKernel, GripPoint, LinePreviewInstrument } from '../../../src/grip';
-import { Layer } from '../../../src/layer';
+import { CircleKernel, GripPoint, LinePreviewInstrument } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';
 
@@ -55,4 +55,3 @@ describe('LinePreviewInstrument', () => {
     layer.dispose();
   });
 });
-

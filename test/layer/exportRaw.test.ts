@@ -1,5 +1,5 @@
 ﻿import { describe, it } from 'vitest';
-import { Layer } from '../../src/layer';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { make2x2BottomLeftOriginPattern, make2x2TopLeftOriginPattern } from '../support/patterns';
@@ -28,4 +28,3 @@ describe('Layer.readPixels', () => {
     layer.dispose();
   });
 });
-

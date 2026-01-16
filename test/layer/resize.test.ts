@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from 'vitest';
-import { Layer } from '../../src/layer';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { make2x2BottomLeftOriginPattern } from '../support/patterns';
@@ -63,4 +63,3 @@ describe('Layer.resizeClear', () => {
     layer.dispose();
   });
 });
-

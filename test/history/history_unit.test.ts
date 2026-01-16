@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { InvertEffect } from '../../src/effects';
-import { Layer } from '../../src/layer';
+import { InvertEffect } from '~/effects';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { HISTORY_BACKENDS } from './utils';
@@ -64,5 +64,3 @@ describe('History (unit)', () => {
     });
   }
 });
-
-

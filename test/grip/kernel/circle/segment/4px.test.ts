@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { CircleKernel } from '../../../../../src/grip';
-import { Layer } from '../../../../../src/layer';
+import { CircleKernel } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../../../support/assert';
 import { loadImageData } from '../../../../support/e2e';
 import { makeGL2Context } from '../../../../support/gl';
@@ -52,4 +52,3 @@ describe('CircleKernel stamp 4px', () => {
     });
   }
 });
-

@@ -1,5 +1,5 @@
 import { RGBA } from '@sledge-pdm/core';
-import { GripPoint } from '../../../src/grip';
+import { GripPoint } from '~/grip';
 
 export const COLOR_BLACK: RGBA = [0, 0, 0, 255];
 

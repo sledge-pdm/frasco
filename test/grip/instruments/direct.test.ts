@@ -1,6 +1,6 @@
 ﻿import { describe, it } from 'vitest';
-import { CircleKernel, DirectStrokeInstrument, GripPoint } from '../../../src/grip';
-import { Layer } from '../../../src/layer';
+import { CircleKernel, DirectStrokeInstrument, GripPoint } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';
 
@@ -68,4 +68,3 @@ describe('DirectStrokeInstrument', () => {
     layerManual.dispose();
   });
 });
-

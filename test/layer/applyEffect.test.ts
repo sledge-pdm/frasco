@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from 'vitest';
-import { COPY_FRAG_300ES, Layer, SOLID_FRAG_300ES } from '../../src/layer';
+import { COPY_FRAG_300ES, Layer, SOLID_FRAG_300ES } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { make2x2BottomLeftOriginPattern } from '../support/patterns';
@@ -47,4 +47,3 @@ describe('Layer.applyEffect', () => {
     layer.dispose();
   });
 });
-
