@@ -1,6 +1,6 @@
-import { describe, it } from 'vitest';
-import { InvertEffect } from '../../src/effects';
-import { Layer } from '../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { InvertEffect } from '~/effects';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { loadImageData } from '../support/e2e';
 import { makeGL2Context } from '../support/gl';
@@ -25,11 +25,11 @@ describe('History (effects integration)', () => {
 
       InvertEffect.apply(layer);
 
-      expectBufferEqual(layer.exportRaw(), expected.data);
+      expectBufferEqual(layer.readPixels(), expected.data);
       layer.undo();
-      expectBufferEqual(layer.exportRaw(), original.data);
+      expectBufferEqual(layer.readPixels(), original.data);
       layer.redo();
-      expectBufferEqual(layer.exportRaw(), expected.data);
+      expectBufferEqual(layer.readPixels(), expected.data);
 
       layer.dispose();
     });

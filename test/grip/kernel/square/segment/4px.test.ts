@@ -1,6 +1,6 @@
-import { describe, it } from 'vitest';
-import { SquareKernel } from '../../../../../src/grip';
-import { Layer } from '../../../../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { SquareKernel } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../../../support/assert';
 import { loadImageData } from '../../../../support/e2e';
 import { makeGL2Context } from '../../../../support/gl';
@@ -34,7 +34,7 @@ async function runStampTest(url: URL, type: SegmentType) {
       break;
   }
 
-  const out = layer.exportRaw();
+  const out = layer.readPixels();
   expectBufferEqual(out, expected.data);
   layer.dispose();
 }

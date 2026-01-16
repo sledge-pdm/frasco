@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
-import { CircleKernel } from '../../../../src/grip';
-import { Layer } from '../../../../src/layer';
+import { CircleKernel } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
 import { makeGL2Context, readTexturePixels } from '../../../support/gl';
@@ -20,7 +20,8 @@ async function runMaskTest(url: URL) {
   mask.clear(0);
   kernel.stampMaskPoint(mask, layer, makePoint(pos, pos, size));
 
-  const maskRaw = readTexturePixels(gl, mask.getTextureHandle(), expected.width, expected.height);
+  const bounds = { x: 0, y: 0, width: expected.width, height: expected.height };
+  const maskRaw = readTexturePixels(gl, mask.getTextureHandle(), bounds);
   const out = maskToAlpha(maskRaw);
   expectBufferEqual(out, expected.data);
 

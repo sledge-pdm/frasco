@@ -1,6 +1,6 @@
-import type { GripPoint, GripStrokeStyle } from '../grip/types';
-import type { Layer } from '../layer';
-import type { MaskSurface, SurfaceBounds } from '../surface/types';
+import type { GripPoint, GripStrokeStyle } from '~/grip';
+import type { Layer } from '~/layer';
+import type { MaskSurface, SurfaceBounds } from '~/surface';
 
 /**
  * Definition of a shape "kernel" (basic stamp + two-point completion).
@@ -10,6 +10,15 @@ import type { MaskSurface, SurfaceBounds } from '../surface/types';
 export interface GripKernel {
   /** Human-readable identifier. */
   readonly id: string;
+
+  /**
+   * Define position transform before passing to GL shaders.
+   * @param position target position input
+   */
+  prePositionTransform(point: GripPoint): {
+    x: number;
+    y: number;
+  };
 
   /**
    * Direct point drawing.

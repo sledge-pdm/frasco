@@ -22,4 +22,9 @@ export default defineConfig({
       truncateThreshold: 20,
     },
   },
+  resolve: {
+    alias: {
+      '~': path.join(__dirname, 'src'),
+    },
+  },
 });

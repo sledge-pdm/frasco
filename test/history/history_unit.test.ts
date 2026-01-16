@@ -1,6 +1,6 @@
-import { describe, it } from 'vitest';
-import { InvertEffect } from '../../src/effects';
-import { Layer } from '../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { InvertEffect } from '~/effects';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { HISTORY_BACKENDS } from './utils';
@@ -27,18 +27,18 @@ describe('History (unit)', () => {
       layer.setHistoryBackend(backend.make());
 
       const pattern = makePattern(4, 4);
-      layer.replaceBuffer(pattern);
-      const before = layer.exportRaw();
+      layer.writePixels(pattern);
+      const before = layer.readPixels();
 
       const snapshot = layer.captureHistory();
       layer.clear([0, 0, 0, 0]);
       if (snapshot) layer.pushHistory(snapshot);
 
-      const after = layer.exportRaw();
+      const after = layer.readPixels();
       layer.undo();
-      expectBufferEqual(layer.exportRaw(), before);
+      expectBufferEqual(layer.readPixels(), before);
       layer.redo();
-      expectBufferEqual(layer.exportRaw(), after);
+      expectBufferEqual(layer.readPixels(), after);
 
       layer.dispose();
     });
@@ -49,15 +49,15 @@ describe('History (unit)', () => {
       layer.setHistoryBackend(backend.make());
 
       const pattern = makePattern(8, 8);
-      layer.replaceBuffer(pattern);
-      const initial = layer.exportRaw();
+      layer.writePixels(pattern);
+      const initial = layer.readPixels();
 
       for (let i = 0; i < 30; i++) {
         InvertEffect.apply(layer);
       }
 
       while (layer.canUndo()) layer.undo();
-      expectBufferEqual(layer.exportRaw(), initial);
+      expectBufferEqual(layer.readPixels(), initial);
 
       while (layer.canRedo()) layer.redo();
       layer.dispose();

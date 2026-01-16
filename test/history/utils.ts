@@ -1,4 +1,4 @@
-import { DeflateHistoryBackend, HistoryBackend, TextureHistoryBackend, WebpHistoryBackend } from '../../src/history';
+import { DeflateHistoryBackend, HistoryBackend, TextureHistoryBackend, WebpHistoryBackend } from '~/history';
 
 export const HISTORY_BACKENDS: {
   name: string;

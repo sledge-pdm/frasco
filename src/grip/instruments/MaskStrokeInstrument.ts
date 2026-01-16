@@ -1,10 +1,10 @@
-import type { GripPoint, GripStrokeStyle } from '../../grip/types';
-import type { Layer } from '../../layer';
-import type { Size } from '../../layer/types';
-import type { MaskSurface, SurfaceBounds } from '../../surface/types';
+import type { Layer, Size } from '~/layer';
+import type { MaskSurface, SurfaceBounds } from '~/surface/types';
+import { deleteTexture } from '~/utils';
 import type { GripInstrument } from '../Instrument';
 import type { GripKernel } from '../Kernel';
 import { MASK_MERGE_300ES } from '../shaders/mask_merge';
+import type { GripPoint, GripStrokeStyle } from '../types';
 
 /**
  * @description Instrument that uses a mask surface to preserve constant opacity.
@@ -55,14 +55,14 @@ export class MaskStrokeInstrument implements GripInstrument {
     this.baseCopiedBounds = undefined;
 
     if (this.baseTexture) {
-      layer.deleteTexture(this.baseTexture);
+      deleteTexture(layer.getGLContext(), this.baseTexture);
     }
     this.baseTexture = layer.createEmptyTexture();
   }
 
   private endStroke(layer: Layer): void {
     if (this.baseTexture) {
-      layer.deleteTexture(this.baseTexture);
+      deleteTexture(layer.getGLContext(), this.baseTexture);
       this.baseTexture = undefined;
     }
     if (this.mask) {

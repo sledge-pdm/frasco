@@ -1,4 +1,5 @@
 import { RawPixelData } from '@sledge-pdm/core';
+import { SurfaceBounds } from '~/surface';
 
 export type Size = {
   width: number;
@@ -13,8 +14,13 @@ export type LayerInit = Size & {
   data?: RawPixelData;
 };
 
-export type LayerExportOptions = {
+export type ReadPixelsOptions = {
+  bounds?: SurfaceBounds;
   flipY?: boolean;
+};
+
+export type WritePixelsOptions = {
+  bounds?: SurfaceBounds;
 };
 
 export type LayerEffectUniformValue = number | readonly number[];

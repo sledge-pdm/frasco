@@ -1,6 +1,6 @@
-import { describe, it } from 'vitest';
-import { CircleKernel, DirectStrokeInstrument, GripPoint } from '../../../src/grip';
-import { Layer } from '../../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { CircleKernel, DirectStrokeInstrument, GripPoint } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { makeGL2Context } from '../../support/gl';
 
@@ -63,7 +63,7 @@ describe('DirectStrokeInstrument', () => {
     const layerManual = makeLayer(9, 9);
     drawStrokeDirect(layerManual, kernel, points);
 
-    expectBufferEqual(layerInstrument.exportRaw(), layerManual.exportRaw());
+    expectBufferEqual(layerInstrument.readPixels(), layerManual.readPixels());
     layerInstrument.dispose();
     layerManual.dispose();
   });

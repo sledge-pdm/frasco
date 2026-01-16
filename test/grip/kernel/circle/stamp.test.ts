@@ -1,6 +1,6 @@
-import { describe, it } from 'vitest';
-import { CircleKernel } from '../../../../src/grip';
-import { Layer } from '../../../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { CircleKernel } from '~/grip';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../../support/assert';
 import { loadImageData } from '../../../support/e2e';
 import { makeGL2Context } from '../../../support/gl';
@@ -18,7 +18,7 @@ async function runStampTest(url: URL) {
   const kernel = new CircleKernel();
   kernel.drawPoint(layer, makePoint(pos, pos, size));
 
-  const out = layer.exportRaw();
+  const out = layer.readPixels();
   expectBufferEqual(out, expected.data);
   layer.dispose();
 }

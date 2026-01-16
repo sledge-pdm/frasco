@@ -1,4 +1,4 @@
-import { Layer } from '../layer';
+import { Layer } from '~/layer';
 import type { GripInstrument } from './Instrument';
 import { MaskStrokeInstrument } from './instruments/MaskStrokeInstrument';
 import type { GripKernel } from './Kernel';

@@ -1,5 +1,5 @@
-import { describe, it } from 'vitest';
-import { Layer } from '../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 import { HISTORY_BACKENDS } from './utils';
@@ -26,13 +26,13 @@ describe('History (raw IO)', () => {
       layer.setHistoryBackend(backend.make());
 
       const pattern = makePattern(6, 6);
-      layer.replaceBuffer(pattern);
-      const before = layer.exportRaw();
+      layer.writePixels(pattern);
+      const before = layer.readPixels();
 
       const snapshot = layer.captureHistory();
       layer.clear([0, 0, 0, 0]);
       if (snapshot) layer.pushHistory(snapshot);
-      const after = layer.exportRaw();
+      const after = layer.readPixels();
 
       const history = layer.exportHistoryRaw();
       if (!history) throw new Error('history export missing');
@@ -43,9 +43,9 @@ describe('History (raw IO)', () => {
       restored.importHistoryRaw(history.undoStack, history.redoStack);
 
       restored.undo();
-      expectBufferEqual(restored.exportRaw(), before);
+      expectBufferEqual(restored.readPixels(), before);
       restored.redo();
-      expectBufferEqual(restored.exportRaw(), after);
+      expectBufferEqual(restored.readPixels(), after);
 
       layer.dispose();
       restored.dispose();

@@ -1,4 +1,4 @@
-import type { Rgba8, RgbaFloat } from '../layer';
+import type { Rgba8, RgbaFloat } from '~/layer';
 
 export type GripColor = Rgba8 | RgbaFloat;
 

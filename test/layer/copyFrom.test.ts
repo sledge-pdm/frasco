@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { Layer } from '../../src/layer';
+﻿import { describe, expect, it } from 'vitest';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../support/assert';
 import { makeGL2Context } from '../support/gl';
 
@@ -14,8 +14,8 @@ describe('Layer.copyFrom', () => {
 
     dst.copyFrom(src);
 
-    const out = dst.exportRaw();
-    expectBufferEqual(out, src.exportRaw());
+    const out = dst.readPixels();
+    expectBufferEqual(out, src.readPixels());
 
     src.dispose();
     dst.dispose();

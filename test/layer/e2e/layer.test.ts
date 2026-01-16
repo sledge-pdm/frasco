@@ -1,11 +1,11 @@
-import { describe, it } from 'vitest';
-import { Layer } from '../../../src/layer';
+﻿import { describe, it } from 'vitest';
+import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
 import { loadImageData } from '../../support/e2e';
 import { makeGL2Context } from '../../support/gl';
 
 describe('Layer (e2e)', () => {
-  it('compares exportRaw() with original image', async () => {
+  it('compares readPixels() with original image', async () => {
     const original = await loadImageData(new URL('./original.webp', import.meta.url));
 
     const gl = makeGL2Context(original.width, original.height);
@@ -15,13 +15,13 @@ describe('Layer (e2e)', () => {
       data: original.data,
     });
 
-    const out = layer.exportRaw();
+    const out = layer.readPixels();
     expectBufferEqual(out, original.data);
 
     layer.dispose();
   });
 
-  it('compares exportRaw({ flipY: true }) with yFlipped image', async () => {
+  it('compares readPixels({ flipY: true }) with yFlipped image', async () => {
     const original = await loadImageData(new URL('./original.webp', import.meta.url));
     const yFlipped = await loadImageData(new URL('./yFlipped.webp', import.meta.url));
 
@@ -32,7 +32,7 @@ describe('Layer (e2e)', () => {
       data: original.data,
     });
 
-    const out = layer.exportRaw({ flipY: true });
+    const out = layer.readPixels({ flipY: true });
     expectBufferEqual(out, yFlipped.data);
 
     layer.dispose();

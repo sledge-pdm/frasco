@@ -1,5 +1,6 @@
-import type { Size } from '../layer/types';
-import type { SurfaceBounds } from '../surface/types';
+import { RawPixelData } from '@sledge-pdm/core';
+import type { ReadPixelsOptions, Size, WritePixelsOptions } from '~/layer';
+import type { SurfaceBounds } from '~/surface';
 
 export type HistoryRawSnapshot = {
   bounds: SurfaceBounds;
@@ -29,14 +30,12 @@ export type WebpHistorySnapshot = {
 };
 
 export interface HistoryTarget {
+  getGLContext(): WebGL2RenderingContext;
   getSize(): Size;
-  readPixels(bounds: SurfaceBounds): Uint8Array;
-  writePixels(bounds: SurfaceBounds, buffer: Uint8Array): void;
-  copyTexture(bounds: SurfaceBounds): WebGLTexture;
+  readPixels(options?: ReadPixelsOptions): Uint8Array;
+  writePixels(buffer: RawPixelData, options?: WritePixelsOptions): void;
+  copyTexture(bounds?: SurfaceBounds): WebGLTexture;
   drawTexture(bounds: SurfaceBounds, texture: WebGLTexture): void;
-  createTextureFromRaw(buffer: Uint8Array, size: Size): WebGLTexture;
-  readTexturePixels(texture: WebGLTexture, size: Size): Uint8Array;
-  deleteTexture(texture: WebGLTexture): void;
 }
 
 export interface HistoryBackend<TSnapshot> {

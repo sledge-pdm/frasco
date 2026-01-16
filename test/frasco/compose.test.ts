@@ -21,7 +21,12 @@ describe('Frasco.compose', () => {
       { target }
     );
 
-    const pixels = readTexturePixels(gl, target, 1, 1);
+    const pixels = readTexturePixels(gl, target, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    });
     expectColor(pixels, [128, 0, 128, 255]);
   });
 
@@ -43,7 +48,12 @@ describe('Frasco.compose', () => {
       { target }
     );
 
-    const pixels = readTexturePixels(gl, target, 1, 1);
+    const pixels = readTexturePixels(gl, target, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    });
     expectColor(pixels, [0, 255, 0, 255]);
   });
 
@@ -65,7 +75,12 @@ describe('Frasco.compose', () => {
       { target }
     );
 
-    const pixels = readTexturePixels(gl, target, 1, 1);
+    const pixels = readTexturePixels(gl, target, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    });
     expectColor(pixels, [64, 32, 16, 255]);
   });
 
@@ -76,7 +91,12 @@ describe('Frasco.compose', () => {
 
     frasco.compose([], { target, baseColor: [1, 1, 1, 1] });
 
-    const pixels = readTexturePixels(gl, target, 1, 1);
+    const pixels = readTexturePixels(gl, target, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    });
     expectColor(pixels, [255, 255, 255, 255]);
   });
 });
