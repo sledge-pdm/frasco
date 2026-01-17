@@ -6,7 +6,7 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": false
   },
   "tsc-alias": {
     "resolveFullPaths": true,
