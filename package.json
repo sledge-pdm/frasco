@@ -27,7 +27,7 @@
     "format": "pnpm prettier"
   },
   "dependencies": {
-    "@sledge-pdm/core": "^1.1.7"
+    "@sledge-pdm/core": "^1.1.9"
   },
   "files": [
     "dist",
@@ -36,7 +36,7 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@sledge-pdm/ui": "^1.1.4",
+    "@sledge-pdm/ui": "^1.1.7",
     "@types/node": "^25.0.3",
     "@vitest/browser-playwright": "^4.0.16",
     "playwright": "^1.57.0",
