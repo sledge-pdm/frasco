@@ -15,7 +15,7 @@
   SquareKernel,
   TextureHistoryBackend,
   WebpHistoryBackend,
-} from '../index';
+} from '../../index';
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement | null;
 const kernelSelect = document.getElementById('kernel') as HTMLSelectElement | null;
