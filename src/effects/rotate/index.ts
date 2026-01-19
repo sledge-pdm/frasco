@@ -3,6 +3,7 @@ import { ROTATE_90_FRAG_300ES } from './shaders';
 
 type Options = {
   direction?: 'cw' | 'ccw';
+  silentHistory?: boolean;
 };
 
 export const Rotate90Effect: Effect<Options> = {
@@ -22,6 +23,6 @@ export const Rotate90Effect: Effect<Options> = {
       },
       nextSize
     );
-    if (snapshot) layer.pushHistory(snapshot);
+    if (snapshot) layer.pushHistory(snapshot, { silent: options?.silentHistory });
   },
 };
