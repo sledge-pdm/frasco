@@ -26,7 +26,7 @@ export class LinePreviewInstrument implements GripInstrument {
     this.merge(layer, point.style, bounds);
   }
 
-  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, _prev: GripPoint, _options?: HistoryContextOptions): void {
+  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, _prev?: GripPoint, _options?: HistoryContextOptions): void {
     if (!this.startPoint) return;
     const nextBounds = kernel.getComputedSegmentBounds(layer, this.startPoint, point);
     const prevBounds = this.lastBounds;
@@ -37,7 +37,7 @@ export class LinePreviewInstrument implements GripInstrument {
     this.merge(layer, point.style, bounds);
   }
 
-  end(layer: Layer, kernel: GripKernel, point: GripPoint, _prev: GripPoint, options?: HistoryContextOptions): void {
+  end(layer: Layer, kernel: GripKernel, point: GripPoint, _prev?: GripPoint, options?: HistoryContextOptions): void {
     if (this.startPoint) {
       const nextBounds = kernel.getComputedSegmentBounds(layer, this.startPoint, point);
       const prevBounds = this.lastBounds;
