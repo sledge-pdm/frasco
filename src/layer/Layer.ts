@@ -233,7 +233,20 @@ export class Layer implements HistoryTarget {
   ): void {
     this.assertNotDisposed();
     if (width <= 0 || height <= 0) throw new Error('Layer.resizePreserve: width/height must be > 0');
-    if (width === this.size.width && height === this.size.height) return;
+    const srcXInit = Math.floor(srcOrigin.x);
+    const srcYInit = Math.floor(srcOrigin.y);
+    const destXInit = Math.floor(destOrigin.x);
+    const destYInit = Math.floor(destOrigin.y);
+    if (
+      width === this.size.width &&
+      height === this.size.height &&
+      srcXInit === 0 &&
+      srcYInit === 0 &&
+      destXInit === 0 &&
+      destYInit === 0
+    ) {
+      return;
+    }
 
     const { gl } = this;
     const prevRead = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
@@ -246,10 +259,10 @@ export class Layer implements HistoryTarget {
     const nextFront = createTexture(gl, width, height, undefined);
     const nextBack = createTexture(gl, width, height, undefined);
 
-    const srcX = Math.floor(srcOrigin.x);
-    const srcY = Math.floor(srcOrigin.y);
-    const destX = Math.floor(destOrigin.x);
-    const destY = Math.floor(destOrigin.y);
+    const srcX = srcXInit;
+    const srcY = srcYInit;
+    const destX = destXInit;
+    const destY = destYInit;
 
     const validDxMin = destX - srcX;
     const validDxMax = destX - srcX + oldSize.width;
