@@ -375,6 +375,16 @@ export class Layer implements HistoryTarget {
     this.runProgram(effect.fragmentSrc, effect.uniforms);
   }
 
+  applyEffectResized(effect: LayerEffect, size: Size): void {
+    this.assertNotDisposed();
+    if (size.width <= 0 || size.height <= 0) throw new Error('Layer.applyEffectResized: width/height must be > 0');
+    if (size.width === this.size.width && size.height === this.size.height) {
+      this.runProgram(effect.fragmentSrc, effect.uniforms);
+      return;
+    }
+    this.runProgramResized(effect.fragmentSrc, effect.uniforms, size);
+  }
+
   applyEffectWithTextures(effect: LayerEffect, textures: Record<string, WebGLTexture>, bounds?: SurfaceBounds): void {
     this.assertNotDisposed();
     this.runProgramWithTextures(effect.fragmentSrc, effect.uniforms, textures, bounds);
@@ -444,6 +454,57 @@ export class Layer implements HistoryTarget {
     gl.useProgram(null);
 
     this.swapTextures();
+  }
+
+  private runProgramResized(fragmentSrc: string, uniforms: Record<string, number | readonly number[]> | undefined, size: Size): void {
+    const { gl } = this;
+    const program = this.getOrCreateProgram(fragmentSrc, fragmentSrc);
+    const prevFront = this.textures.front;
+    const prevBack = this.textures.back;
+    const nextFront = createTexture(gl, size.width, size.height, undefined);
+    const nextBack = createTexture(gl, size.width, size.height, undefined);
+
+    this.bindFramebuffer(nextBack);
+    gl.viewport(0, 0, size.width, size.height);
+    gl.disable(gl.BLEND);
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, prevFront);
+    const srcLoc = gl.getUniformLocation(program, 'u_src');
+    if (srcLoc) gl.uniform1i(srcLoc, 0);
+
+    if (uniforms) {
+      for (const [name, value] of Object.entries(uniforms)) {
+        const loc = gl.getUniformLocation(program, name);
+        if (!loc) continue;
+        if (typeof value === 'number') {
+          gl.uniform1f(loc, value);
+        } else if (value.length === 1) {
+          gl.uniform1f(loc, value[0] as number);
+        } else if (value.length === 2) {
+          gl.uniform2f(loc, value[0] as number, value[1] as number);
+        } else if (value.length === 3) {
+          gl.uniform3f(loc, value[0] as number, value[1] as number, value[2] as number);
+        } else if (value.length === 4) {
+          gl.uniform4f(loc, value[0] as number, value[1] as number, value[2] as number, value[3] as number);
+        } else {
+          throw new Error(`Layer.runProgramResized: unsupported uniform length for ${name}`);
+        }
+      }
+    }
+
+    gl.bindVertexArray(this.vao);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.bindVertexArray(null);
+    gl.useProgram(null);
+
+    gl.deleteTexture(prevFront);
+    gl.deleteTexture(prevBack);
+
+    this.size = { width: size.width, height: size.height };
+    this.textures = { front: nextBack, back: nextFront };
+    this.emit({ type: 'resized', size: { width: size.width, height: size.height } });
   }
 
   private runProgramWithTextures(

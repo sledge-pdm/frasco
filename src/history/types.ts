@@ -6,6 +6,7 @@ export type HistoryRawSnapshot = {
   bounds: SurfaceBounds;
   size: Size;
   buffer: Uint8Array;
+  fullLayer?: boolean;
 };
 
 export type DeflateHistorySnapshot = {
@@ -18,6 +19,7 @@ export type TextureHistorySnapshot = {
   bounds: SurfaceBounds;
   size: Size;
   texture: WebGLTexture;
+  fullLayer?: boolean;
 };
 
 /**
@@ -32,6 +34,7 @@ export type WebpHistorySnapshot = {
 export interface HistoryTarget {
   getGLContext(): WebGL2RenderingContext;
   getSize(): Size;
+  resizeClear(width: number, height: number): void;
   readPixels(options?: ReadPixelsOptions): Uint8Array;
   writePixels(buffer: RawPixelData, options?: WritePixelsOptions): void;
   copyTexture(bounds?: SurfaceBounds): WebGLTexture;
