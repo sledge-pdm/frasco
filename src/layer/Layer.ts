@@ -110,16 +110,20 @@ export class Layer implements HistoryTarget {
     return this.history?.capture(bounds);
   }
 
-  pushHistory(snapshot: unknown): void {
+  pushHistory(snapshot: unknown, options?: { silent?: boolean }): void {
     if (!this.history) return;
     this.history.push(snapshot);
-    this.emit({ type: 'historyRegistered', bounds: this.getFullBounds() });
+    if (!options?.silent) {
+      this.emit({ type: 'historyRegistered', bounds: this.getFullBounds() });
+    }
   }
 
-  commitHistory(bounds?: SurfaceBounds): unknown | undefined {
+  commitHistory(bounds?: SurfaceBounds, options?: { silent?: boolean }): unknown | undefined {
     if (!this.history) return undefined;
     const snapshot = this.history.commit(bounds);
-    this.emit({ type: 'historyRegistered', bounds: bounds ?? this.getFullBounds() });
+    if (!options?.silent) {
+      this.emit({ type: 'historyRegistered', bounds: bounds ?? this.getFullBounds() });
+    }
     return snapshot;
   }
 
@@ -155,10 +159,12 @@ export class Layer implements HistoryTarget {
     this.history?.importRaw(undoStack, redoStack);
   }
 
-  pushHistoryRaw(snapshot: HistoryRawSnapshot): void {
+  pushHistoryRaw(snapshot: HistoryRawSnapshot, options?: { silent?: boolean }): void {
     if (!this.history) return;
     this.history.pushRaw(snapshot);
-    this.emit({ type: 'historyRegistered', bounds: snapshot.bounds });
+    if (!options?.silent) {
+      this.emit({ type: 'historyRegistered', bounds: snapshot.bounds });
+    }
   }
 
   commitHistoryFromTexture(texture: WebGLTexture, bounds: SurfaceBounds): void {
