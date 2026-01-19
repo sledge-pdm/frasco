@@ -1,5 +1,5 @@
-﻿import type { Effect } from '../types';
-import type { HistoryContextOptions } from '~/layer';
+﻿import type { HistoryContextOptions } from '~/layer';
+import type { Effect } from '../types';
 import { INVERT_FRAG_300ES } from './shaders';
 
 type Options = HistoryContextOptions;
@@ -11,4 +11,3 @@ export const InvertEffect: Effect<Options> = {
     if (snapshot) layer.pushHistory(snapshot, { context: options?.context });
   },
 };
-

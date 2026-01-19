@@ -1,6 +1,5 @@
 import type { GripPoint } from '~/grip';
-import type { Layer } from '~/layer';
-import type { HistoryContextOptions } from '~/layer';
+import type { HistoryContextOptions, Layer } from '~/layer';
 import type { GripKernel } from './Kernel';
 
 /**
