@@ -1,4 +1,4 @@
-import type { Layer, Size } from '~/layer';
+import type { HistoryContextOptions, Layer, Size } from '~/layer';
 import type { MaskSurface, SurfaceBounds } from '~/surface/types';
 import { deleteTexture } from '~/utils';
 import type { GripInstrument } from '../Instrument';
@@ -17,27 +17,27 @@ export class MaskStrokeInstrument implements GripInstrument {
   private baseCopiedBounds: SurfaceBounds | undefined;
   private strokeBounds: SurfaceBounds | undefined;
 
-  start(layer: Layer, kernel: GripKernel, point: GripPoint): void {
+  start(layer: Layer, kernel: GripKernel, point: GripPoint, _options?: HistoryContextOptions): void {
     this.beginStroke(layer);
     this.updateStrokeBounds(kernel.stampMaskPoint(this.mask as MaskSurface, layer, point));
     this.copyBaseIfNeeded(layer, this.strokeBounds);
     this.merge(layer, point.style);
   }
 
-  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint): void {
+  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint, _options?: HistoryContextOptions): void {
     this.updateStrokeBounds(kernel.stampMaskSegment(this.mask as MaskSurface, layer, prev, point));
     this.updateStrokeBounds(kernel.stampMaskPoint(this.mask as MaskSurface, layer, point));
     this.copyBaseIfNeeded(layer, this.strokeBounds);
     this.merge(layer, point.style);
   }
 
-  end(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint): void {
+  end(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint, options?: HistoryContextOptions): void {
     this.updateStrokeBounds(kernel.stampMaskSegment(this.mask as MaskSurface, layer, prev, point));
     this.updateStrokeBounds(kernel.stampMaskPoint(this.mask as MaskSurface, layer, point));
     this.copyBaseIfNeeded(layer, this.strokeBounds);
     this.merge(layer, point.style);
     if (this.baseTexture && this.strokeBounds) {
-      layer.commitHistoryFromTexture(this.baseTexture, this.strokeBounds);
+      layer.commitHistoryFromTexture(this.baseTexture, this.strokeBounds, options);
     }
     this.endStroke(layer);
   }

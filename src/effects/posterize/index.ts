@@ -1,7 +1,8 @@
 ﻿import type { Effect } from '../types';
+import type { HistoryContextOptions } from '~/layer';
 import { POSTERIZE_FRAG_300ES } from './shaders';
 
-type Options = {
+type Options = HistoryContextOptions & {
   levels: number;
 };
 
@@ -16,10 +17,11 @@ export const PosterizeEffect: Effect<Options> = {
         u_levels: levels,
       },
     });
-    if (snapshot) layer.pushHistory(snapshot);
+    if (snapshot) layer.pushHistory(snapshot, { context: options?.context });
   },
 };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
+

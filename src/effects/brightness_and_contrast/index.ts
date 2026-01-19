@@ -1,7 +1,8 @@
 ﻿import type { Effect } from '../types';
+import type { HistoryContextOptions } from '~/layer';
 import { BRIGHTNESS_CONTRAST_FRAG_300ES } from './shaders';
 
-type Options = {
+type Options = HistoryContextOptions & {
   brightness: number;
   contrast: number;
 };
@@ -19,10 +20,11 @@ export const BrightnessContrastEffect: Effect<Options> = {
         u_contrast: contrast,
       },
     });
-    if (snapshot) layer.pushHistory(snapshot);
+    if (snapshot) layer.pushHistory(snapshot, { context: options?.context });
   },
 };
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
+

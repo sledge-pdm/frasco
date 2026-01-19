@@ -1,7 +1,8 @@
 import type { Effect } from '../types';
+import type { HistoryContextOptions } from '~/layer';
 import { FLIP_FRAG_300ES } from './shaders';
 
-type Options = {
+type Options = HistoryContextOptions & {
   flipX?: boolean;
   flipY?: boolean;
 };
@@ -21,6 +22,6 @@ export const FlipEffect: Effect<Options> = {
         u_flipY: flipY,
       },
     });
-    if (snapshot) layer.pushHistory(snapshot);
+    if (snapshot) layer.pushHistory(snapshot, { context: options?.context });
   },
 };

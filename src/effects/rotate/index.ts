@@ -1,7 +1,8 @@
 import type { Effect } from '../types';
+import type { HistoryContextOptions } from '~/layer';
 import { ROTATE_90_FRAG_300ES } from './shaders';
 
-type Options = {
+type Options = HistoryContextOptions & {
   direction?: 'cw' | 'ccw';
   silentHistory?: boolean;
 };
@@ -23,6 +24,6 @@ export const Rotate90Effect: Effect<Options> = {
       },
       nextSize
     );
-    if (snapshot) layer.pushHistory(snapshot, { silent: options?.silentHistory });
+    if (snapshot) layer.pushHistory(snapshot, { silent: options?.silentHistory, context: options?.context });
   },
 };

@@ -1,5 +1,5 @@
 import type { GripPoint, GripStrokeStyle } from '../../grip/types';
-import type { Layer } from '../../layer';
+import type { HistoryContextOptions, Layer } from '../../layer';
 import type { Size } from '../../layer/types';
 import type { MaskSurface, SurfaceBounds } from '../../surface/types';
 import { deleteTexture } from '../../utils';
@@ -18,7 +18,7 @@ export class LinePreviewInstrument implements GripInstrument {
   private startPoint: GripPoint | undefined;
   private lastBounds: SurfaceBounds | undefined;
 
-  start(layer: Layer, kernel: GripKernel, point: GripPoint): void {
+  start(layer: Layer, kernel: GripKernel, point: GripPoint, _options?: HistoryContextOptions): void {
     this.startPoint = point;
     this.beginStroke(layer);
     const bounds = kernel.stampMaskSegment(this.mask as MaskSurface, layer, point, point);
@@ -26,7 +26,7 @@ export class LinePreviewInstrument implements GripInstrument {
     this.merge(layer, point.style, bounds);
   }
 
-  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint): void {
+  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, _prev: GripPoint, _options?: HistoryContextOptions): void {
     if (!this.startPoint) return;
     const nextBounds = kernel.getComputedSegmentBounds(layer, this.startPoint, point);
     const prevBounds = this.lastBounds;
@@ -37,7 +37,7 @@ export class LinePreviewInstrument implements GripInstrument {
     this.merge(layer, point.style, bounds);
   }
 
-  end(layer: Layer, kernel: GripKernel, point: GripPoint): void {
+  end(layer: Layer, kernel: GripKernel, point: GripPoint, _prev: GripPoint, options?: HistoryContextOptions): void {
     if (this.startPoint) {
       const nextBounds = kernel.getComputedSegmentBounds(layer, this.startPoint, point);
       const prevBounds = this.lastBounds;
@@ -48,7 +48,7 @@ export class LinePreviewInstrument implements GripInstrument {
       this.merge(layer, point.style, bounds);
     }
     if (this.baseTexture && this.lastBounds) {
-      layer.commitHistoryFromTexture(this.baseTexture, this.lastBounds);
+      layer.commitHistoryFromTexture(this.baseTexture, this.lastBounds, options);
     }
     this.endStroke(layer);
     this.startPoint = undefined;

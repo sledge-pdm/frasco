@@ -1,6 +1,10 @@
 import type { SurfaceBounds } from '~/surface';
 import type { Size } from './types';
 
+export type ContextOptions = {
+  context?: any;
+};
+
 export type LayerResizedEvent = {
   type: 'resized';
   size: Size;
@@ -9,6 +13,7 @@ export type LayerResizedEvent = {
 export type LayerHistoryRegisteredEvent = {
   type: 'historyRegistered';
   bounds: SurfaceBounds;
+  context?: any;
 };
 
 export type LayerHistoryAppliedEvent = {

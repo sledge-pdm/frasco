@@ -1,4 +1,4 @@
-import type { Layer } from '~/layer';
+import type { HistoryContextOptions, Layer } from '~/layer';
 import type { GripInstrument } from '../Instrument';
 import type { GripKernel } from '../Kernel';
 import type { GripPoint } from '../types';
@@ -9,16 +9,16 @@ import type { GripPoint } from '../types';
 export class DirectStrokeInstrument implements GripInstrument {
   readonly id = 'direct-stroke';
 
-  start(layer: Layer, kernel: GripKernel, point: GripPoint): void {
+  start(layer: Layer, kernel: GripKernel, point: GripPoint, _options?: HistoryContextOptions): void {
     kernel.drawPoint(layer, point);
   }
 
-  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint): void {
+  addPoint(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint, _options?: HistoryContextOptions): void {
     kernel.drawSegment(layer, prev, point);
     kernel.drawPoint(layer, point);
   }
 
-  end(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint): void {
+  end(layer: Layer, kernel: GripKernel, point: GripPoint, prev: GripPoint, _options?: HistoryContextOptions): void {
     kernel.drawSegment(layer, prev, point);
     kernel.drawPoint(layer, point);
   }
