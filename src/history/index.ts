@@ -9,7 +9,4 @@ export type {
   HistoryTarget,
   TextureHistoryBackendType,
   TextureHistorySnapshot,
-  WebpHistoryBackendType,
-  WebpHistorySnapshot,
 } from './types';
-export { WebpHistoryBackend } from './WebpHistoryBackend';

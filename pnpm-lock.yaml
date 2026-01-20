@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@sledge-pdm/core':
-        specifier: ^1.1.12
-        version: 1.1.12
+        specifier: ^1.2.0
+        version: 1.2.0
     devDependencies:
       '@sledge-pdm/ui':
         specifier: ^1.1.7
@@ -474,8 +474,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@sledge-pdm/core@1.1.12':
-    resolution: {integrity: sha512-gGmlhduhOYYbAvy/rgGOxi7Z3ldcUCfXoo3n+2znb/LdPo3Djj9GfmAVIKKExd9hbA2KUNn5Ay8Pi8M4j3T/Jg==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/core/1.1.12/c4703b28f577c3296476ff1d1612aa013a722f78}
+  '@sledge-pdm/core@1.2.0':
+    resolution: {integrity: sha512-HO/3q0954anbx4UFT9W6sbT9HF9rjShZM7luTNyksMdFJwF9JlzgTGrRF+zk3FpGxdmQ7s6plfeyvOTveoJznA==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/core/1.2.0/798f0fddd4902c9785fb5f1086d43c0b0b4bec9c}
 
   '@sledge-pdm/ui@1.1.7':
     resolution: {integrity: sha512-GQJQelyb17yicJQoFAbi4ELExQMRAvVRsbWt1kGsnHuakGSpg5lOAJzYWu2xHXhUhGCHJj/t7sAT/K+X3ARZ5A==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/ui/1.1.7/f033dc929b4ddff07bcb658f80a69fea9505a2a7}
@@ -1489,7 +1489,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.54.0':
     optional: true
 
-  '@sledge-pdm/core@1.1.12':
+  '@sledge-pdm/core@1.2.0':
     dependencies:
       '@types/pako': 2.0.4
       msgpackr: 1.11.8
@@ -1497,7 +1497,7 @@ snapshots:
 
   '@sledge-pdm/ui@1.1.7':
     dependencies:
-      '@sledge-pdm/core': 1.1.12
+      '@sledge-pdm/core': 1.2.0
       solid-js: 1.9.10
 
   '@standard-schema/spec@1.1.0': {}

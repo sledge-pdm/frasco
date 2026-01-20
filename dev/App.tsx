@@ -16,12 +16,11 @@ import {
   MaskStrokeInstrument,
   SquareKernel,
   TextureHistoryBackend,
-  WebpHistoryBackend,
 } from '../index';
 
 type KernelType = 'circle' | 'square';
 type InstrumentType = 'direct_stroke' | 'mask_stroke' | 'line_preview';
-type HistoryBackendType = 'deflate' | 'webp' | 'texture';
+type HistoryBackendType = 'deflate' | 'texture';
 
 const kernelOptions: DropdownOption<KernelType>[] = [
   { label: 'Circle', value: 'circle' },
@@ -36,7 +35,6 @@ const instrumentOptions: DropdownOption<InstrumentType>[] = [
 
 const historyBackendOptions: DropdownOption<HistoryBackendType>[] = [
   { label: 'Deflate', value: 'deflate' },
-  { label: 'Webp', value: 'webp' },
   { label: 'Texture', value: 'texture' },
 ];
 
@@ -165,9 +163,6 @@ export default function App() {
         break;
       case 'texture':
         layer.setHistoryBackend(new TextureHistoryBackend());
-        break;
-      case 'webp':
-        layer.setHistoryBackend(new WebpHistoryBackend());
         break;
     }
   };

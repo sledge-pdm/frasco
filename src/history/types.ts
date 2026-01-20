@@ -22,15 +22,6 @@ export type TextureHistorySnapshot = {
   fullLayer?: boolean;
 };
 
-/**
- * @deprecated Current webp conversion may induce memory leak
- */
-export type WebpHistorySnapshot = {
-  bounds: SurfaceBounds;
-  size: Size;
-  webp: Uint8Array;
-};
-
 export interface HistoryTarget {
   getGLContext(): WebGL2RenderingContext;
   getSize(): Size;
@@ -51,4 +42,3 @@ export interface HistoryBackend<TSnapshot> {
 
 export type DeflateHistoryBackendType = HistoryBackend<DeflateHistorySnapshot>;
 export type TextureHistoryBackendType = HistoryBackend<TextureHistorySnapshot>;
-export type WebpHistoryBackendType = HistoryBackend<WebpHistorySnapshot>;
