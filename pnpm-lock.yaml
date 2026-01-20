@@ -13,8 +13,8 @@ importers:
         version: 1.2.0
     devDependencies:
       '@sledge-pdm/ui':
-        specifier: ^1.1.7
-        version: 1.1.7
+        specifier: ^1.2.0
+        version: 1.2.0
       '@types/node':
         specifier: ^25.0.3
         version: 25.0.9
@@ -477,8 +477,8 @@ packages:
   '@sledge-pdm/core@1.2.0':
     resolution: {integrity: sha512-HO/3q0954anbx4UFT9W6sbT9HF9rjShZM7luTNyksMdFJwF9JlzgTGrRF+zk3FpGxdmQ7s6plfeyvOTveoJznA==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/core/1.2.0/798f0fddd4902c9785fb5f1086d43c0b0b4bec9c}
 
-  '@sledge-pdm/ui@1.1.7':
-    resolution: {integrity: sha512-GQJQelyb17yicJQoFAbi4ELExQMRAvVRsbWt1kGsnHuakGSpg5lOAJzYWu2xHXhUhGCHJj/t7sAT/K+X3ARZ5A==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/ui/1.1.7/f033dc929b4ddff07bcb658f80a69fea9505a2a7}
+  '@sledge-pdm/ui@1.2.0':
+    resolution: {integrity: sha512-EP4k1GmbpnRSV0Tks6VUEoHzsq6FGrDmhpDUVWnbsHUuEvgfzkD1AL22Q/yZtOH165S7q99xiPpE3II4PeQ4Qg==, tarball: https://npm.pkg.github.com/download/@sledge-pdm/ui/1.2.0/7d3fd01797ef5d4d695e6d7baa7e7afe1a898631}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -1495,7 +1495,7 @@ snapshots:
       msgpackr: 1.11.8
       pako: 2.1.0
 
-  '@sledge-pdm/ui@1.1.7':
+  '@sledge-pdm/ui@1.2.0':
     dependencies:
       '@sledge-pdm/core': 1.2.0
       solid-js: 1.9.10
