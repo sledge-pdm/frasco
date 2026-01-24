@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { BrightnessContrastEffect, FlipEffect, GrayscaleEffect, InvertEffect, PosterizeEffect, Rotate90Effect } from '~/effects';
+import {
+  BrightnessContrastEffect,
+  DitheringEffect,
+  FlipEffect,
+  GaussianBlurEffect,
+  GrayscaleEffect,
+  InvertEffect,
+  PosterizeEffect,
+  Rotate90Effect,
+} from '~/effects';
 import { TextureHistoryBackend } from '~/history';
 import { Layer } from '~/layer';
 import { expectBufferEqual } from '../../support/assert';
@@ -49,6 +58,22 @@ describe('Effects (e2e)', () => {
     'posterize (32)': {
       apply: (l) => PosterizeEffect.apply(l, { levels: 32 }),
       expectedUrl: new URL('./posterize_32.png', import.meta.url),
+    },
+    'gaussian blue (250, false)': {
+      apply: (l) => GaussianBlurEffect.apply(l, { radius: 250, alphaMode: 'skip' }),
+      expectedUrl: new URL('./gaussianblur_250_skip.png', import.meta.url),
+    },
+    'gaussian blue (500, true)': {
+      apply: (l) => GaussianBlurEffect.apply(l, { radius: 500, alphaMode: 'blur' }),
+      expectedUrl: new URL('./gaussianblur_500_blur.png', import.meta.url),
+    },
+    'dithering (ordered, 4, 1)': {
+      apply: (l) => DitheringEffect.apply(l, { mode: 'ordered', levels: 4, strength: 1 }),
+      expectedUrl: new URL('./dithering_ordered_4_1.png', import.meta.url),
+    },
+    'dithering (ordered, 8, 0.5)': {
+      apply: (l) => DitheringEffect.apply(l, { mode: 'ordered', levels: 8, strength: 0.5 }),
+      expectedUrl: new URL('./dithering_ordered_8_0_5.png', import.meta.url),
     },
     'flip (x)': {
       apply: (l) => FlipEffect.apply(l, { flipX: true }),
