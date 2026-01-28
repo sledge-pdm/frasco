@@ -1,17 +1,22 @@
-import type { Layer, LayerEventFor, LayerEventType } from '~/layer';
+import type { Layer, LayerEventFor } from '~/layer';
+import { LayerResizedEvent, LayerUpdateEvent } from '~/layer/events';
 import type { SurfaceBounds } from '~/surface';
+import { PendingBounds } from '~/thumbnail/PendingBounds';
 import { flipPixelsYInPlace } from '~/utils';
+import { Debounce } from '~/utils/Debounce';
 
 export type LayerThumbnailOptions = {
   scale?: number;
-  updateOn?: LayerEventType[];
+  debounceMs?: number;
 };
 
 export class LayerThumbnail {
   private readonly layer: Layer;
   private readonly gl: WebGL2RenderingContext;
   private readonly scale: number;
-  private readonly updateOn: Set<LayerEventType>;
+  private readonly debounceMs: number;
+  private readonly debouncer: Debounce;
+  private readonly updateListeners: Set<(bounds: SurfaceBounds) => void> = new Set();
 
   private previewTex: WebGLTexture;
   private previewWidth: number;
@@ -25,17 +30,17 @@ export class LayerThumbnail {
   private pixelBuffer: Uint8Array = new Uint8Array(0);
   private cachedImage: ImageData | null = null;
   private dirty = true;
+  private pendingBounds: PendingBounds = new PendingBounds();
 
-  private readonly onHistory: (event: LayerEventFor<'historyRegistered'>) => void;
-  private readonly onApplied: (event: LayerEventFor<'historyApplied'>) => void;
+  private readonly onChange: (event: LayerEventFor<'update'>) => void;
   private readonly onResize: (event: LayerEventFor<'resized'>) => void;
 
   constructor(layer: Layer, options?: LayerThumbnailOptions) {
     this.layer = layer;
     this.gl = layer.getGLContext();
     this.scale = Math.max(1, Math.floor(options?.scale ?? 8));
-    const updateOn = options?.updateOn ?? ['historyRegistered', 'historyApplied', 'resized'];
-    this.updateOn = new Set(updateOn);
+    this.debounceMs = Math.max(0, Math.floor(options?.debounceMs ?? 50));
+    this.debouncer = new Debounce(this.debounceMs);
 
     const size = layer.getSize();
     this.previewWidth = Math.max(1, Math.ceil(size.width / this.scale));
@@ -44,24 +49,34 @@ export class LayerThumbnail {
     this.readFbo = this.createFramebuffer();
     this.drawFbo = this.createFramebuffer();
 
-    this.onHistory = (event) => {
-      if (!this.updateOn.has('historyRegistered')) return;
-      this.updatePreviewByBounds(event.bounds);
+    this.onChange = (e: LayerUpdateEvent) => {
+      this.pendingBounds.add(e.bounds);
+
+      this.debouncer.schedule(() => {
+        const bounds = this.pendingBounds.getBounds();
+        this.pendingBounds.reset();
+        if (bounds) {
+          this.updatePreviewByBounds(bounds);
+        }
+      });
     };
-    this.onApplied = (event) => {
-      if (!this.updateOn.has('historyApplied')) return;
-      this.updatePreviewByBounds(event.bounds);
-    };
-    this.onResize = (event) => {
-      if (!this.updateOn.has('resized')) return;
-      this.resizePreview(event.size.width, event.size.height);
-      this.updateAll();
+    this.onResize = (e: LayerResizedEvent) => {
+      this.debouncer.cancel();
+      this.pendingBounds.reset();
+      this.resizePreview(e.size.width, e.size.height);
+      this.updateAll(); // TODO: Make sure its necessary
     };
 
-    this.layer.addListener('historyRegistered', this.onHistory);
-    this.layer.addListener('historyApplied', this.onApplied);
+    this.layer.addListener('update', this.onChange);
     this.layer.addListener('resized', this.onResize);
     this.updateAll();
+  }
+
+  onUpdate(listener: (bounds: SurfaceBounds) => void): () => void {
+    this.updateListeners.add(listener);
+    return () => {
+      this.updateListeners.delete(listener);
+    };
   }
 
   getImageData(width: number, height: number): ImageData {
@@ -84,9 +99,10 @@ export class LayerThumbnail {
   }
 
   dispose(): void {
-    this.layer.removeListener('historyRegistered', this.onHistory);
-    this.layer.removeListener('historyApplied', this.onApplied);
+    this.layer.removeListener('update', this.onChange);
     this.layer.removeListener('resized', this.onResize);
+    this.debouncer.cancel();
+    this.pendingBounds.reset();
 
     const { gl } = this;
     gl.deleteTexture(this.previewTex);
@@ -158,6 +174,11 @@ export class LayerThumbnail {
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, prevRead);
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, prevDraw);
     this.dirty = true;
+
+    const clippedBounds = { x: srcX0, y: srcY0, width: srcX1 - srcX0, height: srcY1 - srcY0 };
+    for (const listener of this.updateListeners) {
+      listener(clippedBounds);
+    }
   }
 
   private blitPreviewToTarget(width: number, height: number): void {

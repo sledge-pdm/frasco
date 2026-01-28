@@ -1,4 +1,4 @@
-import type { RgbaFloat, Size } from '~/layer';
+import type { Layer, RgbaFloat, Size } from '~/layer';
 import { FULLSCREEN_VERT_300ES } from '~/layer';
 import { BLEND_FRAG_300ES, COPY_FRAG_FLIP_300ES } from './shaders';
 import type { ComposeOptions, CompositeLayer, FrascoOptions } from './types';
@@ -103,6 +103,44 @@ export class Frasco {
     const flipY = options?.flipY ?? false;
     if (target && target === front) return;
     this.drawCopy(front, target, flipY);
+  }
+
+  composeToLayer(layers: CompositeLayer[], targetLayer: Layer, options?: ComposeOptions): void {
+    this.assertNotDisposed();
+    const targetSize = options?.size ?? this.size ?? targetLayer.getSize();
+    if (!targetSize) {
+      throw new Error('Frasco.composeToLayer: size is required before composing');
+    }
+
+    const layerSize = targetLayer.getSize();
+    if (layerSize.width !== targetSize.width || layerSize.height !== targetSize.height) {
+      throw new Error('Frasco.composeToLayer: target layer size mismatch');
+    }
+
+    this.ensureSize(targetSize);
+    if (!this.textures) throw new Error('Frasco.composeToLayer: textures not initialized');
+
+    const { gl } = this;
+    const activeLayers = layers.filter((layer) => layer.enabled !== false);
+    const baseColor = options?.baseColor ?? this.baseColor;
+
+    gl.disable(gl.BLEND);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.viewport(0, 0, targetSize.width, targetSize.height);
+
+    this.clearTexture(this.textures.front, baseColor ?? [0, 0, 0, 0]);
+
+    let front = this.textures.front;
+    let back = this.textures.back;
+
+    for (const layer of activeLayers) {
+      this.drawBlend(layer.texture, front, back, layer.opacity, getBlendModeId(layer.blendMode));
+      const tmp = front;
+      front = back;
+      back = tmp;
+    }
+
+    targetLayer.drawTexture({ x: 0, y: 0, width: targetSize.width, height: targetSize.height }, front);
   }
 
   dispose(): void {

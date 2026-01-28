@@ -212,6 +212,7 @@ export class Layer implements HistoryTarget {
     gl.clearColor(color[0] / 255, color[1] / 255, color[2] / 255, color[3] / 255);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.flush();
+    this.emit({ type: 'update', bounds: this.getFullBounds() });
   }
 
   resizeClear(width: number, height: number): void {
@@ -327,6 +328,7 @@ export class Layer implements HistoryTarget {
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, bounds.x, bounds.y, bounds.width, bounds.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
     this.emit({ type: 'historyApplied', bounds });
+    this.emit({ type: 'update', bounds });
   }
 
   readPixels(options?: ReadPixelsOptions): Uint8Array {
@@ -386,6 +388,7 @@ export class Layer implements HistoryTarget {
     gl.useProgram(null);
 
     this.swapTextures();
+    this.emit({ type: 'update', bounds });
   }
 
   applyEffect(effect: LayerEffect): void {
@@ -472,6 +475,7 @@ export class Layer implements HistoryTarget {
     gl.useProgram(null);
 
     this.swapTextures();
+    this.emit({ type: 'update', bounds: this.getFullBounds() });
   }
 
   private runProgramResized(fragmentSrc: string, uniforms: Record<string, number | readonly number[]> | undefined, size: Size): void {
@@ -523,6 +527,7 @@ export class Layer implements HistoryTarget {
     this.size = { width: size.width, height: size.height };
     this.textures = { front: nextBack, back: nextFront };
     this.emit({ type: 'resized', size: { width: size.width, height: size.height } });
+    this.emit({ type: 'update', bounds: this.getFullBounds() });
   }
 
   private runProgramWithTextures(
@@ -589,10 +594,12 @@ export class Layer implements HistoryTarget {
     if (bounds) {
       gl.disable(gl.SCISSOR_TEST);
       this.copyTextureBounds(this.textures.back, this.textures.front, bounds);
+      this.emit({ type: 'update', bounds });
       return;
     }
 
     this.swapTextures();
+    this.emit({ type: 'update', bounds: this.getFullBounds() });
   }
 
   private swapTextures(): void {

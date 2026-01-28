@@ -21,7 +21,12 @@ export type LayerHistoryAppliedEvent = {
   bounds: SurfaceBounds;
 };
 
-export type LayerEvent = LayerResizedEvent | LayerHistoryRegisteredEvent | LayerHistoryAppliedEvent;
+export type LayerUpdateEvent = {
+  type: 'update';
+  bounds: SurfaceBounds;
+};
+
+export type LayerEvent = LayerResizedEvent | LayerHistoryRegisteredEvent | LayerHistoryAppliedEvent | LayerUpdateEvent;
 
 export type LayerEventType = LayerEvent['type'];
 
