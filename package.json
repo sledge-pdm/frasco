@@ -27,7 +27,7 @@
     "format": "pnpm prettier"
   },
   "dependencies": {
-    "@sledge-pdm/core": "^1.2.1"
+    "@sledge-pdm/core": "^1.2.4"
   },
   "files": [
     "dist",
