@@ -64,7 +64,7 @@ export class LayerThumbnail {
       this.debouncer.cancel();
       this.pendingBounds.reset();
       this.resizePreview(e.size.width, e.size.height);
-      this.updateAll(); // TODO: Make sure its necessary
+      this.updateAll();
     };
 
     this.layer.addListener('update', this.onChange);
