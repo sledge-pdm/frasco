@@ -24,7 +24,15 @@
     "preview": "vite preview",
     "tsc": "pnpm exec tsc --noEmit --skipLibCheck",
     "prettier": "prettier --write . --config .prettierrc",
-    "format": "pnpm prettier"
+    "format": "pnpm prettier",
+    "lint-staged": "lint-staged",
+    "prepare": "simple-git-hooks"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,css,scss,html,yml,yaml}": "prettier --write --ignore-unknown"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
   },
   "dependencies": {
     "@sledge-pdm/core": "^1.2.4"
@@ -40,8 +48,10 @@
     "@types/node": "^25.0.10",
     "@vitest/browser-playwright": "^4.0.18",
     "playwright": "^1.58.0",
+    "lint-staged": "^15.5.0",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "simple-git-hooks": "^2.13.0",
     "solid-js": "^1.9.11",
     "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3",
