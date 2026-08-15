@@ -5,6 +5,3 @@ allowBuilds:
   simple-git-hooks: true
 
 minimumReleaseAge: 0
-
-minimumReleaseAgeExclude:
-  - '@sledge-pdm/core@1.2.6'
