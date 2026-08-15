@@ -35,7 +35,7 @@
     "pre-commit": "pnpm lint-staged"
   },
   "dependencies": {
-    "@sledge-pdm/core": "^1.2.4"
+    "@sledge-pdm/core": "^1.2.6"
   },
   "files": [
     "dist",
