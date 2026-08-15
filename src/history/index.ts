@@ -5,6 +5,7 @@ export type {
   DeflateHistoryBackendType,
   DeflateHistorySnapshot,
   HistoryBackend,
+  HistoryPackedSnapshot,
   HistoryRawSnapshot,
   HistoryTarget,
   TextureHistoryBackendType,

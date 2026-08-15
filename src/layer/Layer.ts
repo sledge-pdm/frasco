@@ -1,5 +1,5 @@
 ﻿import { RawPixelData } from '@sledge-pdm/core';
-import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from '~/history';
+import type { HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, HistoryTarget } from '~/history';
 import { LayerHistory } from '~/history';
 import type { MaskSurface, SurfaceBounds } from '~/surface';
 import { MaskSurfaceImpl } from '~/surface';
@@ -163,6 +163,14 @@ export class Layer implements HistoryTarget {
     this.history?.importRaw(undoStack, redoStack);
   }
 
+  exportHistoryPacked(): Promise<{ undoStack: HistoryPackedSnapshot[]; redoStack: HistoryPackedSnapshot[] }> | undefined {
+    return this.history?.exportPacked();
+  }
+
+  importHistoryPacked(undoStack: HistoryPackedSnapshot[], redoStack: HistoryPackedSnapshot[]): void {
+    this.history?.importPacked(undoStack, redoStack);
+  }
+
   pushHistoryRaw(snapshot: HistoryRawSnapshot, options?: HistoryRegisterOptions): void {
     if (!this.history) return;
     this.history.pushRaw(snapshot);
@@ -229,6 +237,11 @@ export class Layer implements HistoryTarget {
       front: createTexture(gl, width, height, undefined),
       back: createTexture(gl, width, height, undefined),
     };
+    // the buffer was replaced, so the contents changed as much as the size did - listeners that only watch
+    // 'update' (a save-time deflate cache, for one) would otherwise keep treating the layer as untouched.
+    // it has to go out *before* 'resized': a listener that debounces 'update' and refreshes eagerly on
+    // 'resized' (LayerThumbnail) then drops the pending work instead of repeating the full refresh after it.
+    this.emit({ type: 'update', bounds: this.getFullBounds() });
     this.emit({ type: 'resized', size: { width, height } });
   }
 
@@ -312,6 +325,9 @@ export class Layer implements HistoryTarget {
       front: nextFront,
       back: nextBack,
     };
+    // same ordering as resizeClear: 'update' first so an 'update' listener that debounces does not repeat
+    // the eager refresh 'resized' already performed.
+    this.emit({ type: 'update', bounds: this.getFullBounds() });
     this.emit({ type: 'resized', size: { width, height } });
   }
 

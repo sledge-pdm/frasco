@@ -20,6 +20,20 @@ export type TextureHistorySnapshot = {
   size: Size;
   texture: WebGLTexture;
   fullLayer?: boolean;
+  /**
+   * deflate of the pixels this snapshot holds, filled the first time it is exported.
+   * a snapshot's texture does not change while it sits on a stack, so this stays valid
+   * until `apply` swaps the texture out.
+   */
+  deflated?: Uint8Array;
+};
+
+/** A snapshot whose pixels are carried as zlib-deflated bytes instead of GPU state. */
+export type HistoryPackedSnapshot = {
+  bounds: SurfaceBounds;
+  size: Size;
+  deflated: Uint8Array;
+  fullLayer?: boolean;
 };
 
 export interface HistoryTarget {
@@ -37,6 +51,14 @@ export interface HistoryBackend<TSnapshot> {
   apply(target: HistoryTarget, snapshot: TSnapshot): void;
   exportRaw(target: HistoryTarget, snapshot: TSnapshot): HistoryRawSnapshot;
   importRaw(target: HistoryTarget, snapshot: HistoryRawSnapshot): TSnapshot;
+  /**
+   * @description deflated bytes for this snapshot, reusing what the backend already holds.
+   *   only reads back from the GPU when there is nothing to reuse, so exporting the same
+   *   stack twice costs nothing the second time.
+   */
+  exportPacked(target: HistoryTarget, snapshot: TSnapshot): Promise<HistoryPackedSnapshot>;
+  /** @description rebuild a snapshot from deflated bytes, keeping those bytes for the next export. */
+  importPacked(target: HistoryTarget, snapshot: HistoryPackedSnapshot): TSnapshot;
   disposeSnapshot?(target: HistoryTarget, snapshot: TSnapshot): void;
 }
 

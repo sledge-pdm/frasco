@@ -1,7 +1,7 @@
 import { gzipDeflate, gzipInflate } from '@sledge-pdm/core';
 import type { Size } from '~/layer/types';
 import type { SurfaceBounds } from '~/surface';
-import type { DeflateHistorySnapshot, HistoryBackend, HistoryRawSnapshot, HistoryTarget } from './types';
+import type { DeflateHistorySnapshot, HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, HistoryTarget } from './types';
 
 export class DeflateHistoryBackend implements HistoryBackend<DeflateHistorySnapshot> {
   capture(target: HistoryTarget, bounds?: SurfaceBounds): DeflateHistorySnapshot {
@@ -34,5 +34,15 @@ export class DeflateHistoryBackend implements HistoryBackend<DeflateHistorySnaps
     const size: Size = { width: snapshot.bounds.width, height: snapshot.bounds.height };
     const deflated = gzipDeflate(snapshot.buffer);
     return { bounds: snapshot.bounds, size, deflated };
+  }
+
+  // this backend already stores its pixels deflated, so packing is just handing those bytes over.
+  async exportPacked(_target: HistoryTarget, snapshot: DeflateHistorySnapshot): Promise<HistoryPackedSnapshot> {
+    return { bounds: snapshot.bounds, size: snapshot.size, deflated: snapshot.deflated };
+  }
+
+  importPacked(_target: HistoryTarget, snapshot: HistoryPackedSnapshot): DeflateHistorySnapshot {
+    const size: Size = { width: snapshot.bounds.width, height: snapshot.bounds.height };
+    return { bounds: snapshot.bounds, size, deflated: snapshot.deflated };
   }
 }

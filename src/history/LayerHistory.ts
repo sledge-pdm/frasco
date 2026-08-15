@@ -1,5 +1,12 @@
 ﻿import type { SurfaceBounds } from '~/surface';
-import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget } from './types';
+import type { HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, HistoryTarget } from './types';
+
+/**
+ * @description how many snapshots are packed at once.
+ *   packing reads a snapshot back from the GPU before compressing it, and a stack can hold a hundred of them,
+ *   so the raw buffers are kept to a handful at a time rather than all being live together.
+ */
+const PACK_CONCURRENCY = 4;
 
 export class LayerHistory<TSnapshot> {
   private undoStack: TSnapshot[] = [];
@@ -81,8 +88,43 @@ export class LayerHistory<TSnapshot> {
     this.redoStack = redoStack.map((snapshot) => this.backend.importRaw(this.target, snapshot));
   }
 
+  /**
+   * @description export both stacks as deflated bytes. snapshots untouched since the last call are handed
+   *   back from the backend's cache, so repeated exports only pay for what actually changed.
+   */
+  async exportPacked(): Promise<{ undoStack: HistoryPackedSnapshot[]; redoStack: HistoryPackedSnapshot[] }> {
+    return {
+      undoStack: await this.packStack(this.undoStack),
+      redoStack: await this.packStack(this.redoStack),
+    };
+  }
+
+  importPacked(undoStack: HistoryPackedSnapshot[], redoStack: HistoryPackedSnapshot[]): void {
+    this.clear();
+    this.undoStack = undoStack.map((snapshot) => this.backend.importPacked(this.target, snapshot));
+    this.redoStack = redoStack.map((snapshot) => this.backend.importPacked(this.target, snapshot));
+  }
+
   dispose(): void {
     this.clear();
+  }
+
+  private async packStack(stack: TSnapshot[]): Promise<HistoryPackedSnapshot[]> {
+    if (stack.length === 0) return [];
+
+    const packed = new Array<HistoryPackedSnapshot>(stack.length);
+    let nextIndex = 0;
+
+    const runner = async () => {
+      for (;;) {
+        const index = nextIndex++;
+        if (index >= stack.length) return;
+        packed[index] = await this.backend.exportPacked(this.target, stack[index]);
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(PACK_CONCURRENCY, stack.length) }, runner));
+    return packed;
   }
 
   private clearRedo(): void {

@@ -1,7 +1,8 @@
+import { gzipDeflateAsync, gzipInflate } from '@sledge-pdm/core';
 import type { Size } from '~/layer';
 import type { SurfaceBounds } from '~/surface';
 import { createTexture, deleteTexture, readTexturePixels } from '~/utils';
-import type { HistoryBackend, HistoryRawSnapshot, HistoryTarget, TextureHistorySnapshot } from './types';
+import type { HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, HistoryTarget, TextureHistorySnapshot } from './types';
 
 export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnapshot> {
   capture(target: HistoryTarget, bounds?: SurfaceBounds): TextureHistorySnapshot {
@@ -26,6 +27,8 @@ export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnaps
     snapshot.size = { width: currentBounds.width, height: currentBounds.height };
     snapshot.texture = current;
     snapshot.fullLayer = fullLayer;
+    // the snapshot now carries what used to be on the layer, so anything deflated earlier describes the wrong pixels.
+    snapshot.deflated = undefined;
   }
 
   exportRaw(target: HistoryTarget, snapshot: TextureHistorySnapshot): HistoryRawSnapshot {
@@ -42,6 +45,27 @@ export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnaps
     const size: Size = { width: snapshot.bounds.width, height: snapshot.bounds.height };
     const texture = createTexture(target.getGLContext(), size.width, size.height, snapshot.buffer);
     return { bounds: snapshot.bounds, size, texture, fullLayer: snapshot.fullLayer };
+  }
+
+  async exportPacked(target: HistoryTarget, snapshot: TextureHistorySnapshot): Promise<HistoryPackedSnapshot> {
+    if (!snapshot.deflated) {
+      // deflating here rather than in capture keeps the readback - which stalls the GPU - out of the drawing path.
+      const buffer = readTexturePixels(target.getGLContext(), snapshot.texture, {
+        x: 0,
+        y: 0,
+        width: snapshot.size.width,
+        height: snapshot.size.height,
+      });
+      snapshot.deflated = await gzipDeflateAsync(buffer);
+    }
+    return { bounds: snapshot.bounds, size: snapshot.size, deflated: snapshot.deflated, fullLayer: snapshot.fullLayer };
+  }
+
+  importPacked(target: HistoryTarget, snapshot: HistoryPackedSnapshot): TextureHistorySnapshot {
+    const size: Size = { width: snapshot.bounds.width, height: snapshot.bounds.height };
+    const texture = createTexture(target.getGLContext(), size.width, size.height, gzipInflate(snapshot.deflated));
+    // the bytes we were handed already describe this texture, so the next export can skip the readback entirely.
+    return { bounds: snapshot.bounds, size, texture, fullLayer: snapshot.fullLayer, deflated: snapshot.deflated };
   }
 
   disposeSnapshot(target: HistoryTarget, snapshot: TextureHistorySnapshot): void {
