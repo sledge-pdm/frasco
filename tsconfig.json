@@ -13,9 +13,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "noEmit": false,
-    "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*"]
+      "*": ["./*"],
+      "~/*": ["./src/*"]
     },
     "types": ["vite/client"],
     "rootDirs": ["src"]
