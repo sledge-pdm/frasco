@@ -1,2 +1,3 @@
 export { flipPixelsYInPlace } from './BufferUtils';
-export { createTexture, deleteTexture, readTexturePixels } from './TextureUtils';
+export { createTexture, deleteTexture, readTexturePixels, readTexturePixelsAsync } from './TextureUtils';
+export type { ReadTexturePixelsAsyncOptions } from './TextureUtils';

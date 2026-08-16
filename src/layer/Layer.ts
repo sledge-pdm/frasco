@@ -3,7 +3,7 @@ import type { HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, History
 import { LayerHistory } from '~/history';
 import type { MaskSurface, SurfaceBounds } from '~/surface';
 import { MaskSurfaceImpl } from '~/surface';
-import { createTexture, flipPixelsYInPlace, readTexturePixels } from '~/utils';
+import { createTexture, flipPixelsYInPlace, readTexturePixels, readTexturePixelsAsync } from '~/utils';
 import type { ContextOptions, LayerEvent, LayerEventFor, LayerEventType } from './events';
 import { COPY_FRAG_300ES, FULLSCREEN_VERT_300ES } from './shaders';
 import type { LayerEffect, LayerInit, ReadPixelsOptions, Rgba8, Size, WritePixelsOptions } from './types';
@@ -361,6 +361,18 @@ export class Layer implements HistoryTarget {
       flipPixelsYInPlace(out, bounds.width, bounds.height);
     }
     return out;
+  }
+
+  /**
+   * @description same result as readPixels, without freezing the main thread while the GPU catches up.
+   *   the synchronous version stays the right call for anything that needs the pixels in the same tick
+   *   (picking a colour, a tool reading what it is about to draw over); this one is for bulk reads such
+   *   as saving, where the wait is long enough to be felt.
+   */
+  async readPixelsAsync(options?: ReadPixelsOptions): Promise<Uint8Array> {
+    this.assertNotDisposed();
+    const bounds = options?.bounds ?? this.getFullBounds();
+    return readTexturePixelsAsync(this.gl, this.textures.front, bounds, { flipY: options?.flipY });
   }
 
   copyTexture(bounds?: SurfaceBounds): WebGLTexture {

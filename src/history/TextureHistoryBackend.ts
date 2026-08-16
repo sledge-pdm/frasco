@@ -1,7 +1,7 @@
 import { gzipDeflateAsync, gzipInflate } from '@sledge-pdm/core';
 import type { Size } from '~/layer';
 import type { SurfaceBounds } from '~/surface';
-import { createTexture, deleteTexture, readTexturePixels } from '~/utils';
+import { createTexture, deleteTexture, readTexturePixels, readTexturePixelsAsync } from '~/utils';
 import type { HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, HistoryTarget, TextureHistorySnapshot } from './types';
 
 export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnapshot> {
@@ -49,8 +49,9 @@ export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnaps
 
   async exportPacked(target: HistoryTarget, snapshot: TextureHistorySnapshot): Promise<HistoryPackedSnapshot> {
     if (!snapshot.deflated) {
-      // deflating here rather than in capture keeps the readback - which stalls the GPU - out of the drawing path.
-      const buffer = readTexturePixels(target.getGLContext(), snapshot.texture, {
+      // deflating here rather than in capture keeps the readback out of the drawing path, and the async
+      // readback keeps the main thread free while the GPU hands the pixels over.
+      const buffer = await readTexturePixelsAsync(target.getGLContext(), snapshot.texture, {
         x: 0,
         y: 0,
         width: snapshot.size.width,

@@ -1,11 +1,9 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
-import topLevelAwait from 'vite-plugin-top-level-await';
-import wasmPlugin from 'vite-plugin-wasm';
 
 export default defineConfig({
-  plugins: [solid(), wasmPlugin(), topLevelAwait()],
+  plugins: [solid()],
   root: 'dev',
   publicDir: '../public',
   build: {
@@ -17,7 +15,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '~': path.join(__dirname, 'src'),
+      '~': path.join(import.meta.dirname, 'src'),
     },
   },
 });
