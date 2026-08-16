@@ -26,6 +26,11 @@ export type TextureHistorySnapshot = {
    * until `apply` swaps the texture out.
    */
   deflated?: Uint8Array;
+  /**
+   * bumped whenever `apply` swaps the texture out. exporting is asynchronous, so a read that
+   * started before an undo has to be able to tell that its result no longer describes this snapshot.
+   */
+  revision?: number;
 };
 
 /** A snapshot whose pixels are carried as zlib-deflated bytes instead of GPU state. */

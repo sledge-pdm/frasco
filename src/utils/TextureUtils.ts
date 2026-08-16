@@ -50,7 +50,15 @@ export function readTexturePixels(
 export type ReadTexturePixelsAsyncOptions = {
   /** flip rows while copying on the GPU, so no CPU pass over the buffer is needed afterwards. */
   flipY?: boolean;
+  /** give up waiting on the fence after this long and read synchronously instead. */
+  fenceTimeoutMs?: number;
 };
+
+/**
+ * @description the slowest readback measured on real hardware was 28ms for a 2048x2048 layer, so this is
+ *   a detector for a fence that is never going to signal, not a tuning knob.
+ */
+const DEFAULT_FENCE_TIMEOUT_MS = 1000;
 
 /**
  * @description read a texture back without blocking on the GPU.
@@ -103,7 +111,14 @@ export async function readTexturePixelsAsync(
     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
 
-    await waitForSync(gl, sync);
+    const signalled = await waitForSync(gl, sync, options?.fenceTimeoutMs ?? DEFAULT_FENCE_TIMEOUT_MS);
+    if (!signalled) {
+      // a fence that never signals would otherwise leave this promise unsettled forever, and with it every
+      // save sharing the in-flight one. a lost context cannot produce pixels at all; anything else falls
+      // back to the blocking read, which costs a stall but always returns.
+      if (gl.isContextLost()) throw new Error('readTexturePixelsAsync: context lost while waiting for the fence');
+      return readTexturePixels(gl, source, { ...origin, width, height });
+    }
 
     // anything could have run while we were yielding, so bind again rather than trusting the state
     const out = new Uint8Array(byteLength);
@@ -144,16 +159,22 @@ function blitFlipped(gl: WebGL2RenderingContext, texture: WebGLTexture, bounds: 
   return dest;
 }
 
-function waitForSync(gl: WebGL2RenderingContext, sync: WebGLSync): Promise<void> {
+/** @description resolves true once the fence signalled, false once `timeoutMs` passed without it. */
+function waitForSync(gl: WebGL2RenderingContext, sync: WebGLSync, timeoutMs: number): Promise<boolean> {
   return new Promise((resolve, reject) => {
+    const deadline = performance.now() + timeoutMs;
     const poll = () => {
       const status = gl.clientWaitSync(sync, 0, 0);
       if (status === gl.ALREADY_SIGNALED || status === gl.CONDITION_SATISFIED) {
-        resolve();
+        resolve(true);
         return;
       }
       if (status === gl.WAIT_FAILED) {
         reject(new Error('readTexturePixelsAsync: clientWaitSync failed'));
+        return;
+      }
+      if (performance.now() >= deadline) {
+        resolve(false);
         return;
       }
       scheduleRetry(poll);

@@ -118,4 +118,23 @@ describe('readTexturePixelsAsync', () => {
     gl.deleteTexture(texture);
     layer.dispose();
   });
+
+  it('falls back to the blocking read when the fence never signals', async () => {
+    const gl = makeGL2Context(8, 8);
+    const layer = new Layer(gl, { width: 8, height: 8, data: makePattern(8, 8) });
+    const texture = layer.copyTexture();
+
+    // a fence stuck like this used to leave the promise unsettled forever, and with it every save that
+    // shares the in-flight one
+    const original = gl.clientWaitSync.bind(gl);
+    gl.clientWaitSync = () => gl.TIMEOUT_EXPIRED;
+    try {
+      const out = await readTexturePixelsAsync(gl, texture, { x: 0, y: 0, width: 8, height: 8 }, { fenceTimeoutMs: 20 });
+      expectBufferEqual(out, layer.readPixels());
+    } finally {
+      gl.clientWaitSync = original;
+      gl.deleteTexture(texture);
+      layer.dispose();
+    }
+  });
 });

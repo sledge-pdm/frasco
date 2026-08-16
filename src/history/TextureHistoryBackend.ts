@@ -29,6 +29,7 @@ export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnaps
     snapshot.fullLayer = fullLayer;
     // the snapshot now carries what used to be on the layer, so anything deflated earlier describes the wrong pixels.
     snapshot.deflated = undefined;
+    snapshot.revision = (snapshot.revision ?? 0) + 1;
   }
 
   exportRaw(target: HistoryTarget, snapshot: TextureHistorySnapshot): HistoryRawSnapshot {
@@ -48,22 +49,32 @@ export class TextureHistoryBackend implements HistoryBackend<TextureHistorySnaps
   }
 
   async exportPacked(target: HistoryTarget, snapshot: TextureHistorySnapshot): Promise<HistoryPackedSnapshot> {
-    if (!snapshot.deflated) {
-      // deflating here rather than in capture keeps the readback out of the drawing path, and the async
-      // readback keeps the main thread free while the GPU hands the pixels over.
-      const buffer = await readTexturePixelsAsync(target.getGLContext(), snapshot.texture, {
-        x: 0,
-        y: 0,
-        width: snapshot.size.width,
-        height: snapshot.size.height,
-      });
-      snapshot.deflated = await gzipDeflateAsync(buffer);
-    }
-    return { bounds: snapshot.bounds, size: snapshot.size, deflated: snapshot.deflated, fullLayer: snapshot.fullLayer };
+    // everything the result is built from is read up front: `apply` can replace the texture, the bounds and
+    // the size while we are awaiting below, and a packed snapshot whose bytes and bounds come from different
+    // moments cannot be inflated back into a texture.
+    const revision = snapshot.revision ?? 0;
+    const { bounds, size, fullLayer } = snapshot;
+    if (snapshot.deflated) return { bounds, size, deflated: snapshot.deflated, fullLayer };
+
+    // deflating here rather than in capture keeps the readback out of the drawing path, and the async
+    // readback keeps the main thread free while the GPU hands the pixels over. the copy is queued before
+    // the first yield, so an `apply` that deletes this texture afterwards cannot spoil it.
+    const buffer = await readTexturePixelsAsync(target.getGLContext(), snapshot.texture, {
+      x: 0,
+      y: 0,
+      width: size.width,
+      height: size.height,
+    });
+    const deflated = await gzipDeflateAsync(buffer);
+    // keeping these bytes is only valid if the snapshot still holds the texture they came from.
+    if ((snapshot.revision ?? 0) === revision) snapshot.deflated = deflated;
+    return { bounds, size, deflated, fullLayer };
   }
 
   importPacked(target: HistoryTarget, snapshot: HistoryPackedSnapshot): TextureHistorySnapshot {
-    const size: Size = { width: snapshot.bounds.width, height: snapshot.bounds.height };
+    // the exporter wrote the size the bytes were deflated from; deriving it from bounds again only works
+    // while the two agree.
+    const size: Size = snapshot.size;
     const texture = createTexture(target.getGLContext(), size.width, size.height, gzipInflate(snapshot.deflated));
     // the bytes we were handed already describe this texture, so the next export can skip the readback entirely.
     return { bounds: snapshot.bounds, size, texture, fullLayer: snapshot.fullLayer, deflated: snapshot.deflated };

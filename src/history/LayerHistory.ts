@@ -11,6 +11,12 @@ const PACK_CONCURRENCY = 4;
 export class LayerHistory<TSnapshot> {
   private undoStack: TSnapshot[] = [];
   private redoStack: TSnapshot[] = [];
+  /**
+   * how many exports are packing right now. a counter rather than a flag: saving and taking a project
+   * snapshot both assemble the whole project, and neither waits for the other.
+   */
+  private packing = 0;
+  private pendingDispose: TSnapshot[] = [];
 
   constructor(
     private readonly target: HistoryTarget,
@@ -25,9 +31,7 @@ export class LayerHistory<TSnapshot> {
   push(snapshot: TSnapshot): void {
     if (this.undoStack.length >= this.maxItems) {
       const dropped = this.undoStack.shift();
-      if (dropped && this.backend.disposeSnapshot) {
-        this.backend.disposeSnapshot(this.target, dropped);
-      }
+      if (dropped) this.disposeSnapshot(dropped);
     }
     this.undoStack.push(snapshot);
     this.clearRedo();
@@ -67,10 +71,8 @@ export class LayerHistory<TSnapshot> {
   }
 
   clear(): void {
-    if (this.backend.disposeSnapshot) {
-      for (const snapshot of this.undoStack) this.backend.disposeSnapshot(this.target, snapshot);
-      for (const snapshot of this.redoStack) this.backend.disposeSnapshot(this.target, snapshot);
-    }
+    for (const snapshot of this.undoStack) this.disposeSnapshot(snapshot);
+    for (const snapshot of this.redoStack) this.disposeSnapshot(snapshot);
     this.undoStack = [];
     this.redoStack = [];
   }
@@ -93,10 +95,18 @@ export class LayerHistory<TSnapshot> {
    *   back from the backend's cache, so repeated exports only pay for what actually changed.
    */
   async exportPacked(): Promise<{ undoStack: HistoryPackedSnapshot[]; redoStack: HistoryPackedSnapshot[] }> {
-    return {
-      undoStack: await this.packStack(this.undoStack),
-      redoStack: await this.packStack(this.redoStack),
-    };
+    // packing yields, and an edit landing in one of those gaps can trim, clear or replace either stack.
+    // holding disposal off until we are done keeps the snapshots we are still reading from alive.
+    this.packing++;
+    try {
+      return {
+        undoStack: await this.packStack(this.undoStack),
+        redoStack: await this.packStack(this.redoStack),
+      };
+    } finally {
+      this.packing--;
+      this.flushPendingDispose();
+    }
   }
 
   importPacked(undoStack: HistoryPackedSnapshot[], redoStack: HistoryPackedSnapshot[]): void {
@@ -109,28 +119,46 @@ export class LayerHistory<TSnapshot> {
     this.clear();
   }
 
-  private async packStack(stack: TSnapshot[]): Promise<HistoryPackedSnapshot[]> {
-    if (stack.length === 0) return [];
+  private async packStack(stack: readonly TSnapshot[]): Promise<HistoryPackedSnapshot[]> {
+    // walk a copy: the live array can be pushed to or trimmed while we await, and reading its length
+    // as we go would leave holes in the result - a hole reaches the file as null and fails the next load.
+    const snapshots = [...stack];
+    if (snapshots.length === 0) return [];
 
-    const packed = new Array<HistoryPackedSnapshot>(stack.length);
+    const packed = new Array<HistoryPackedSnapshot>(snapshots.length);
     let nextIndex = 0;
 
     const runner = async () => {
       for (;;) {
         const index = nextIndex++;
-        if (index >= stack.length) return;
-        packed[index] = await this.backend.exportPacked(this.target, stack[index]);
+        if (index >= snapshots.length) return;
+        packed[index] = await this.backend.exportPacked(this.target, snapshots[index]);
       }
     };
 
-    await Promise.all(Array.from({ length: Math.min(PACK_CONCURRENCY, stack.length) }, runner));
+    await Promise.all(Array.from({ length: Math.min(PACK_CONCURRENCY, snapshots.length) }, runner));
     return packed;
   }
 
   private clearRedo(): void {
-    if (this.backend.disposeSnapshot) {
-      for (const snapshot of this.redoStack) this.backend.disposeSnapshot(this.target, snapshot);
-    }
+    for (const snapshot of this.redoStack) this.disposeSnapshot(snapshot);
     this.redoStack = [];
+  }
+
+  /** @description dispose, unless a pack in flight might still be reading this snapshot's pixels. */
+  private disposeSnapshot(snapshot: TSnapshot): void {
+    if (!this.backend.disposeSnapshot) return;
+    if (this.packing > 0) {
+      this.pendingDispose.push(snapshot);
+      return;
+    }
+    this.backend.disposeSnapshot(this.target, snapshot);
+  }
+
+  private flushPendingDispose(): void {
+    if (this.packing > 0 || this.pendingDispose.length === 0) return;
+    const pending = this.pendingDispose;
+    this.pendingDispose = [];
+    for (const snapshot of pending) this.backend.disposeSnapshot?.(this.target, snapshot);
   }
 }

@@ -42,7 +42,9 @@ export class DeflateHistoryBackend implements HistoryBackend<DeflateHistorySnaps
   }
 
   importPacked(_target: HistoryTarget, snapshot: HistoryPackedSnapshot): DeflateHistorySnapshot {
-    const size: Size = { width: snapshot.bounds.width, height: snapshot.bounds.height };
+    // the exporter wrote the size the bytes were deflated from; deriving it from bounds again only works
+    // while the two agree.
+    const size: Size = snapshot.size;
     return { bounds: snapshot.bounds, size, deflated: snapshot.deflated };
   }
 }
