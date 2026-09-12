@@ -1,4 +1,5 @@
 ﻿import type { SurfaceBounds } from '~/surface';
+import { mapWithConcurrency } from '~/utils/Parallel';
 import type { HistoryBackend, HistoryPackedSnapshot, HistoryRawSnapshot, HistoryTarget } from './types';
 
 /**
@@ -123,21 +124,10 @@ export class LayerHistory<TSnapshot> {
     // walk a copy: the live array can be pushed to or trimmed while we await, and reading its length
     // as we go would leave holes in the result - a hole reaches the file as null and fails the next load.
     const snapshots = [...stack];
-    if (snapshots.length === 0) return [];
-
-    const packed = new Array<HistoryPackedSnapshot>(snapshots.length);
-    let nextIndex = 0;
-
-    const runner = async () => {
-      for (;;) {
-        const index = nextIndex++;
-        if (index >= snapshots.length) return;
-        packed[index] = await this.backend.exportPacked(this.target, snapshots[index]);
-      }
-    };
-
-    await Promise.all(Array.from({ length: Math.min(PACK_CONCURRENCY, snapshots.length) }, runner));
-    return packed;
+    // a snapshot that fails to pack must not end the export before the rest of it is done: `packing` drops
+    // back to zero in exportPacked's `finally`, and the disposals held back for it would then run while
+    // those reads are still in flight. mapWithConcurrency waits for everything it started before rethrowing.
+    return await mapWithConcurrency(snapshots, PACK_CONCURRENCY, (snapshot) => this.backend.exportPacked(this.target, snapshot));
   }
 
   private clearRedo(): void {
