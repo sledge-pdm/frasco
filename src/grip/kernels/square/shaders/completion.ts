@@ -25,6 +25,29 @@ void main() {
 
   float dx = ab.x;
   float dy = ab.y;
+
+  // With size 1 the half extent is 0, so the slab test below degenerates to the
+  // segment itself and only covers pixels whose center lies exactly on the line.
+  // Rasterize one pixel per major-axis step instead so the stroke stays connected.
+  if (u_half <= 0.0) {
+    float hit = 0.0;
+    if (abs(dx) >= abs(dy)) {
+      float t = (gl_FragCoord.x - u_from.x) / dx;
+      if (t >= 0.0 && t <= 1.0) {
+        float d = gl_FragCoord.y - (u_from.y + dy * t);
+        hit = (d >= -0.5 && d < 0.5) ? 1.0 : 0.0;
+      }
+    } else {
+      float t = (gl_FragCoord.y - u_from.y) / dy;
+      if (t >= 0.0 && t <= 1.0) {
+        float d = gl_FragCoord.x - (u_from.x + dx * t);
+        hit = (d >= -0.5 && d < 0.5) ? 1.0 : 0.0;
+      }
+    }
+    outColor = mix(src, u_color, clamp(u_opacity, 0.0, 1.0) * hit);
+    return;
+  }
+
   float tMin = 0.0;
   float tMax = 1.0;
 
