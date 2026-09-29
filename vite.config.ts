@@ -14,6 +14,7 @@ export default defineConfig({
     exclude: ['@sledge-pdm/ui'],
   },
   resolve: {
+    dedupe: ['solid-js'],
     alias: {
       '~': path.join(import.meta.dirname, 'src'),
     },

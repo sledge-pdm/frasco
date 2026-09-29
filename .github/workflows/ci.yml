@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '26'
           # Note: Removing cache since anvil is a submodule without pnpm-lock.yaml
 
       - name: Configure pnpm Auth for private registry
